@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <signal.h>
 
 #define IS_DEBUG
 
@@ -31,6 +33,7 @@ typedef struct client_thread_data {
 
 
 struct sockaddr_in serv_addr;  // Server und Clientaddresse
+int serv_sock = -1;
 
 
 void put_err(char *src){
@@ -81,10 +84,13 @@ int create_socket(){
   return serv_sock;
 }
 
-void process_client(client_thread_data_t *client_data){
-  int sock = client_data->client_sock;
+void* process_client(void *client_data){
+  int sock = ((client_thread_data_t*)client_data)->client_sock;
   
   DEBUG("Process created");
+
+  //TODO Hier geht es morgen weiter!
+  sleep(10);
 
   close(sock);
   DEBUG("Client Socket Closed");
@@ -96,6 +102,7 @@ int wait_connect(int server_sock){
   int client_sock, addr_len;
   struct sockaddr_in client_addr;
   client_thread_data_t *client_data = NULL;
+  pthread_t tid;
 
   while(1){
 
@@ -108,22 +115,54 @@ int wait_connect(int server_sock){
     }
     DEBUG("Client Accepted");
 
-    if((client_data = malloc(sizeof(client_data))) == NULL){
+    if((client_data = malloc(sizeof(client_thread_data_t))) == NULL){
       put_err("alloc mem for client data");
     }
     client_data->client_sock = client_sock;
     client_data->client_addr = client_addr;
 
-    process_client(client_data);
+    if(pthread_create(&tid, NULL, process_client, client_data) == -1){
+      close(client_sock);
+      free(client_data);
+    }
 
   }
 }
 
 
-
+static void exit_sig_handler(int signr){
+#ifdef IS_DEBUG
+  switch (signr){
+    case SIGABRT:
+      DEBUG("Got SIGABRT Interupt!\n");
+    case SIGTERM:
+      DEBUG("Got SIGTERM Interupt!\n");
+    case SIGQUIT:
+      DEBUG("Got SIGQUIT Interupt!\n");
+    case SIGINT:
+      DEBUG("Got SIGINT Interupt\n");
+  }
+#endif
+  if(serv_sock != -1){
+    close(serv_sock);
+  }
+  exit(0);
+}
 
 int main(int argc, char *argv[]){
-  int serv_sock;
+  if(signal(SIGABRT, exit_sig_handler) == SIG_ERR){
+    put_err("Sighandler 'SIGABRT'");
+  }
+  if(signal(SIGTERM, exit_sig_handler) == SIG_ERR){
+    put_err("Sighandler 'SIGTERM'");
+  }
+  if(signal(SIGQUIT, exit_sig_handler) == SIG_ERR){
+    put_err("Sighandler 'SIGQUIT'");
+  }
+  if(signal(SIGINT, exit_sig_handler) == SIG_ERR){
+    put_err("Sighandler 'SIGINT'");
+  }
+  
   if (process_opt(argc, argv)){
     exit(1);
   }
