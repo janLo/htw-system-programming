@@ -3,6 +3,8 @@
 #include "smtprelay.h"
 #include "connection.h"
 
+char *server_addr = NULL;
+
 void put_err(char *src){
   if (src == NULL){
     fprintf(stderr, ERROR_PREF);
@@ -48,9 +50,13 @@ int main(int argc, char *argv[]){
   if (process_opt(argc, argv, &addr, &port)){
     exit(1);
   }
+  server_addr = addr;
   if(create_conn(addr,port)){
     exit(1);
   }
+#ifdef USE_DMALLOC
+  dmalloc_shutdown();
+#endif
   return 0;
 }
 

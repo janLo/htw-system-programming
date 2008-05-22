@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#ifdef USE_DMALLOC
+  #include <dmalloc.h>
+#endif
+
+
+
 #define ERROR_PREF "[1;31mERROR: [0m"
 
 
@@ -18,6 +24,7 @@
 #define DEFAULT_BINDADDR "127.0.0.1"
 #define DEFAULT_BINDPORT "2345"
 
+extern char *server_addr;
 
 // Puts an Error with the Msg related to the errno
 // at stderr

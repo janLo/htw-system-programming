@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include "smtprelay.h"
 #include "connection.h"
+#include "session.h"
 
 #define MAX_WAIT_CONN 25
 
@@ -50,18 +51,19 @@ static int create_socket(){
 }
 
 static void* process_client(void *client_data){
-  int sock = ((client_thread_data_t*)client_data)->client_sock;
+  client_thread_data_t * data = (client_thread_data_t*) client_data;
+  int sock = data->client_sock;
   
   DEBUG_CLNT("Thread created");
 
-  //write(
-  //TODO Hier geht es morgen weiter!
-  sleep(10);
+  
+//  start_session(sock);
 
   close(sock);
   DEBUG_CLNT("Client Socket Closed");
 
-  free(client_data);
+  fprintf(stderr,"Free: %p\n",client_data);
+  free(data);
 
   DEBUG_CLNT("Quit Thread");
   return NULL;
@@ -84,15 +86,17 @@ static int wait_connect(int server_sock){
     }
     DEBUG("Client Accepted");
 
-    if((client_data = malloc(sizeof(client_thread_data_t))) == NULL){
+    if((client_data = (client_thread_data_t*)malloc(sizeof(client_thread_data_t))) == NULL){
       put_err("alloc mem for client data");
+      return 0;
     }
     client_data->client_sock = client_sock;
     client_data->client_addr = client_addr;
 
-    if(pthread_create(&tid, NULL, process_client, client_data) == -1){
+    //process_client(client_data);
+    if(pthread_create(&tid, NULL, process_client, client_data) != 0){
+      put_err("create thread");
       close(client_sock);
-      free(client_data);
     }
 
   }
@@ -135,5 +139,8 @@ void sig_abrt_conn(int signr){
 //    shutdown(serv_sock,2);
     close(serv_sock);
   }
+#ifdef USE_DMALLOC
+  dmalloc_shutdown();
+#endif
   exit(0);
 }
