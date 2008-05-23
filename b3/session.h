@@ -1,3 +1,15 @@
-#define MSG_GREET "%d %s SMTP Relay by Jan Losinski\n"
+#define MSG_GREET 	"%d %s SMTP Relay by Jan Losinski\n"
+#define MSG_RESET 	"%d RESET Accepted, Resetted\n"
+#define MSG_NOOP 	"%d NOOP Ok, I'm here\n"
+#define MSG_BYE 	"%d QUIT Ok, Bye Bye.\n"
+#define MSG_NOT_IMPL 	"%d %s Command not implemented\n"
+#define MSG_SYNTAX 	"%d Syntax error or command unrecognized\n"
+#define MSG_SYNTAX_ARG 	"%d syntax error in parameters or arguments\n"
+#define MSG_SENDER 	"%d Sender %s OK\n"
+#define MSG_HELLO 	"%d Hello %s, How are you?\n"
+#define MSG_RCPT 	"%d RCPT %s seems to be OK\n"
+#define MSG_DATA 	"%d Waiting for Data, End with <CR><LF>.<CR><LF>\n"
+#define MSG_DATA_ACK 	"%d Message with %s lines Accepted\n"
+#define MSG_MEM		"%d Requested mail action aborted: exceeded storage allocation\n"
 
 int start_session(int fd);

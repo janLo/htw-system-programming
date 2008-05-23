@@ -6,9 +6,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "smtprelay.h"
 #include "connection.h"
 #include "session.h"
+#include "smtprelay.h"
 
 #define MAX_WAIT_CONN 25
 
@@ -56,13 +56,13 @@ static void* process_client(void *client_data){
   
   DEBUG_CLNT("Thread created");
 
-  
-//  start_session(sock);
+  start_session(sock);
 
+  shutdown(sock,2);
   close(sock);
   DEBUG_CLNT("Client Socket Closed");
 
-  fprintf(stderr,"Free: %p\n",client_data);
+  fprintf(stderr,"Free: %p\n",data);
   free(data);
 
   DEBUG_CLNT("Quit Thread");
@@ -90,15 +90,15 @@ static int wait_connect(int server_sock){
       put_err("alloc mem for client data");
       return 0;
     }
+    fprintf(stderr,"Free: %p\n",client_data);
     client_data->client_sock = client_sock;
     client_data->client_addr = client_addr;
 
-    //process_client(client_data);
     if(pthread_create(&tid, NULL, process_client, client_data) != 0){
       put_err("create thread");
       close(client_sock);
     }
-
+    pthread_detach(tid);
   }
 }
 

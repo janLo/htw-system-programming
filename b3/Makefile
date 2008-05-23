@@ -1,5 +1,7 @@
-CFLAGS=-g -DIS_DEBUG -Wall # -DUSE_DMALLOC
-LDFLAGS=-lpthread # -ldmalloc
+CFLAGS=-g -DIS_DEBUG -Wall  -DUSE_DMALLOC
+LDFLAGS=-lpthread  -ldmalloc
+LDFLAGS=-lpthread 
+CFLAGS=-g -DIS_DEBUG -Wall
 LD=gcc 
 
 OBJS=smtprelay.o connection.o session.o
