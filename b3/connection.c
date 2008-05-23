@@ -104,6 +104,8 @@ static int wait_connect(int server_sock){
 
 int create_conn(char *addr, char *port){
 
+
+  server_addr_string = addr;
   memset(&serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_port = htons(atoi(port));
   serv_addr.sin_addr.s_addr = inet_addr(addr);
@@ -132,8 +134,6 @@ int create_remote_conn(char *addr, char *port){
   int remote_sock;
 
   struct sockaddr_in remote_addr;
-
-  server_addr_string = addr;
 
   memset(&remote_addr, 0, sizeof(remote_addr));
   remote_addr.sin_port = htons(atoi(port));

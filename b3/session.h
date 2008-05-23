@@ -10,9 +10,14 @@
 #define MSG_HELLO 	"%d Hello %s, How are you?\r\n"
 #define MSG_RCPT 	"%d RCPT %s seems to be OK\r\n"
 #define MSG_DATA 	"%d Waiting for Data, End with <CR><LF>.<CR><LF>\r\n"
-#define MSG_DATA_ACK 	"%d Message with %s lines Accepted\r\n"
+#define MSG_DATA_ACK 	"%d Message Accepted and forwarded\r\n"
+#define MSG_DATA_FAIL 	"%d Message Accepted but forward failed\r\n"
 #define MSG_MEM		"%d Requested mail action aborted: exceeded storage allocation\r\n"
 #define MSG_SEQ		"%d Bad Sequence of Commands\r\n"
+
+#define MSG_PROTO        "%d-PROTOCOL: %s\r\n"
+
+
 
 typedef struct data_line{
   char *data;
@@ -28,3 +33,4 @@ typedef struct mail_data{
 
 int write_client_msg(int fd, int status, const char *msg, char *add);
 int start_session(int fd);
+void put_forward_proto(int status, int fd, data_line_t *proto);

@@ -217,7 +217,6 @@ int session_sequence(int fd, mail_data_t **mail_d){
   int result;
   data_line_t * walker;
   int i = 0;
-  char buff[10];
 
   data = *mail_d;
 
@@ -276,12 +275,6 @@ int session_sequence(int fd, mail_data_t **mail_d){
       walker = walker->next;  
       i++;
     }
-    snprintf(buff, 10, "%d", i);
-    if(write_client_msg(fd, 250, MSG_DATA_ACK, buff) == FAIL){
-      DEBUG_CLNT("Write Failed, Abort Session");
-      put_err("Wrie to Client");
-      return SESSION_ABORT;
-    }    
   } else {
     if(result == READ_MEM){
       if(write_client_msg(fd, 552, MSG_MEM, NULL) == FAIL){
@@ -295,6 +288,15 @@ int session_sequence(int fd, mail_data_t **mail_d){
 
 
   return SESSION_SEND;
+}
+
+void put_forward_proto(int status, int fd, data_line_t *proto){
+  data_line_t *walker;
+  walker = proto;
+  while (walker != NULL){
+    write_client_msg(fd, status, MSG_PROTO, walker->data);
+    walker = walker->next;
+  }
 }
 
 int start_session(int fd){
@@ -343,7 +345,22 @@ int start_session(int fd){
 
     if(session == SESSION_SEND){
       DEBUG_CLNT("Forward Mail");
-      forward_mail(fd, data);
+      result = forward_mail(fd, data);
+      if(result == OK){      
+	if(write_client_msg(fd, 250, MSG_DATA_ACK,NULL) == FAIL){
+	  DEBUG_CLNT("Write Failed, Abort Session");
+	  put_err("Wrie to Client");
+	  session = SESSION_ABORT;
+	}
+      } else {
+	if(write_client_msg(fd, 451, MSG_DATA_FAIL,NULL) == FAIL){
+	  DEBUG_CLNT("Write Failed, Abort Session");
+	  put_err("Wrie to Client");
+	  session = SESSION_ABORT;
+	}
+
+      }
+        
       session = SESSION_RUN;
     }
 
