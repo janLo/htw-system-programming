@@ -17,9 +17,9 @@ void put_err(char *src){
 
 
 int process_opt(int argc, char *argv[], char **addr, char **port){
-  if (argc > 1) {
-    //TODO Args parsen und in struct packen
-    //TODO Beispiel Seite 695
+  if (argc == 3) {
+    *port = argv[2];
+    *addr = argv[1];
   } else {
     *port = DEFAULT_BINDPORT;
     *addr = DEFAULT_BINDADDR;

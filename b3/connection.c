@@ -22,6 +22,7 @@ typedef struct client_thread_data {
 
 struct sockaddr_in serv_addr;  // Server und Clientaddresse
 int serv_sock = -1;
+char * server_addr_string = NULL;
 
 
 static int create_socket(){
@@ -35,14 +36,14 @@ static int create_socket(){
 
   if(bind(serv_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1){
     put_err("socket binding");
-    close(serv_sock);
+    quit_conn(serv_sock);
     return -1;
   }
   DEBUG("Socket bound");
 
   if(listen(serv_sock, MAX_WAIT_CONN) == -1){
     put_err("socket listening");
-    close(serv_sock);
+    quit_conn(serv_sock);
     return -1;
   }
   DEBUG("Listen on Socket");
@@ -59,10 +60,9 @@ static void* process_client(void *client_data){
   start_session(sock);
 
   shutdown(sock,2);
-  close(sock);
+  quit_conn(sock);
   DEBUG_CLNT("Client Socket Closed");
 
-  fprintf(stderr,"Free: %p\n",data);
   free(data);
 
   DEBUG_CLNT("Quit Thread");
@@ -90,13 +90,12 @@ static int wait_connect(int server_sock){
       put_err("alloc mem for client data");
       return 0;
     }
-    fprintf(stderr,"Free: %p\n",client_data);
     client_data->client_sock = client_sock;
     client_data->client_addr = client_addr;
 
     if(pthread_create(&tid, NULL, process_client, client_data) != 0){
       put_err("create thread");
-      close(client_sock);
+      quit_conn(client_sock);
     }
     pthread_detach(tid);
   }
@@ -116,10 +115,52 @@ int create_conn(char *addr, char *port){
 
   wait_connect(serv_sock); 
 
-  close(serv_sock);
+  quit_conn(serv_sock);
 
   return 0;
 
+}
+
+void quit_conn(int fd){
+  if(close(fd) != 0){
+    put_err("Close Conn");
+    DEBUG_CLNT("Close Connection");
+  }
+}
+
+int create_remote_conn(char *addr, char *port){
+  int remote_sock;
+
+  struct sockaddr_in remote_addr;
+
+  server_addr_string = addr;
+
+  memset(&remote_addr, 0, sizeof(remote_addr));
+  remote_addr.sin_port = htons(atoi(port));
+  remote_addr.sin_addr.s_addr = inet_addr(addr);
+  remote_addr.sin_family = AF_INET;
+
+  if((remote_sock = socket(PF_INET, SOCK_STREAM, 0)) == -1){
+    put_err("remote socket creation");
+    return -1;
+  }
+  DEBUG_CLNT_N("Remote Socket Created. fd", remote_sock);
+
+  if(connect(remote_sock, (struct sockaddr*)&remote_addr, sizeof(remote_addr)) == -1){
+    put_err("Remote sockte Connecting");
+    close(remote_sock);
+    return -1;
+  }
+  DEBUG_CLNT("Remote Socket connected");
+
+  return remote_sock;
+}
+
+void quit_remote_conn(int fd){
+  if(close(fd) != 0){
+    put_err("Close remote Conn");
+    DEBUG_CLNT("Close Remote Connection");
+  }
 }
 
 void sig_abrt_conn(int signr){
@@ -137,10 +178,12 @@ void sig_abrt_conn(int signr){
 #endif
   if(serv_sock != -1){
 //    shutdown(serv_sock,2);
-    close(serv_sock);
+    quit_conn(serv_sock);
   }
 #ifdef USE_DMALLOC
   dmalloc_shutdown();
 #endif
   exit(0);
 }
+
+

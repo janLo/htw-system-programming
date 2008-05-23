@@ -2,13 +2,13 @@
 #include <string.h>
 #include <unistd.h>
 #include "session.h"
+#include "sender.h"
 #include "smtprelay.h"
 
-#define OK 1
-#define FAIL 0
 
 enum session {
   SESSION_RUN,
+  SESSION_SEND,
   SESSION_QUIT,
   SESSION_RESET,
   SESSION_ABORT
@@ -33,19 +33,7 @@ enum check_arg{
   ARG_BAD_MSG
 };
 
-typedef struct data_line{
-  char *data;
-  struct data_line *next;
-} data_line_t;
-
-typedef struct mail_data{
-  char* client_addr;
-  char* sender_mail;
-  char* rcpt_mail;
-  data_line_t * data;
-} mail_data_t;
-
-static int write_client_msg(int fd, int status, const char *msg, char *add){
+int write_client_msg(int fd, int status, const char *msg, char *add){
   int len, ret = FAIL;
   char *buff;
   
@@ -161,6 +149,13 @@ static int fetch_input_line(int fd, char *prefix, char delim, int (*check_fkt)(c
         write_client_msg(fd, 502, MSG_NOT_IMPL, "HELP");
 	continue;
       }
+      if(check_input(buff, "HELO", '\0', NULL, val) == CHECK_OK
+	  || check_input(buff, "MAIL FROM", '\0', NULL, val) == CHECK_OK
+	  || check_input(buff, "DATA", '\0', NULL, val) == CHECK_OK
+	  || check_input(buff, "RCPT TO", '\0', NULL, val) == CHECK_OK){
+	write_client_msg(fd, 503, MSG_SEQ, NULL);
+	continue;
+      }
       write_client_msg(fd, 500, MSG_SYNTAX, NULL);
     } else {
       if(len == 0){
@@ -224,31 +219,9 @@ int session_sequence(int fd, mail_data_t **mail_d){
   int i = 0;
   char buff[10];
 
-  data = malloc(sizeof(mail_data_t));
-  *mail_d = data;
+  data = *mail_d;
 
-  // GREET
-  DEBUG_CLNT("Greet Client"); 
-  if(write_client_msg(fd, 220, MSG_GREET,server_addr) == FAIL){
-    DEBUG_CLNT("Write Failed, Abort Session");
-    put_err("Wrie to Client");
-    return SESSION_ABORT;
-  }
   
-  //HELO
-  DEBUG_CLNT("Wait for HELO");
-  result = fetch_input_line(fd, "HELO", ' ', check_addr, &(data->client_addr));
-  if (result == READ_OK){
-    DEBUG_CLNT_S("Client Helo", data->client_addr);
-    if(write_client_msg(fd, 250, MSG_HELLO, data->client_addr) == FAIL){
-      DEBUG_CLNT("Write Failed, Abort Session");
-      put_err("Wrie to Client");
-      return SESSION_ABORT;
-    }
-  } else {
-    return (result == READ_ERR ? SESSION_ABORT : (result == READ_QUIT ? SESSION_QUIT : SESSION_RESET));
-  }
-
   //MAIL FROM
   DEBUG_CLNT("Wait for MAIL FROM");
   result = fetch_input_line(fd, "MAIL FROM", ':', check_mail, &(data->sender_mail));
@@ -320,42 +293,69 @@ int session_sequence(int fd, mail_data_t **mail_d){
     }
   }
 
-  //QUIT
-  DEBUG_CLNT("Wait for QUIT");
-  result = fetch_input_line(fd, "QUIT", '\0', NULL, NULL);
-  if (result == READ_OK){
-    DEBUG_CLNT("Client QUIT");
-    if(write_client_msg(fd, 221, MSG_BYE, NULL) == FAIL){
-      DEBUG_CLNT("Write Failed, Abort Session");
-      put_err("Wrie to Client");
-      return SESSION_ABORT;
-    }
-  } else {
-    return (result == READ_ERR ? SESSION_ABORT : (result == READ_QUIT ? SESSION_QUIT : SESSION_RESET));
-  }
 
-  return SESSION_QUIT;
+  return SESSION_SEND;
 }
 
 int start_session(int fd){
   int session = SESSION_RUN;
   mail_data_t *data = NULL;
   data_line_t *tmp, *walker;
+  int result;
+
+  data = malloc(sizeof(mail_data_t));
+
+  memset(data, 0, sizeof(mail_data_t));
+
+  // GREET
+  DEBUG_CLNT("Greet Client"); 
+  if(write_client_msg(fd, 220, MSG_GREET,server_addr) == FAIL){
+    DEBUG_CLNT("Write Failed, Abort Session");
+    put_err("Wrie to Client");
+    session = SESSION_ABORT;
+  }
+
+  //HELO
+  DEBUG_CLNT("Wait for HELO");
+  result = fetch_input_line(fd, "HELO", ' ', check_addr, &(data->client_addr));
+  if (result == READ_OK){
+    DEBUG_CLNT_S("Client Helo", data->client_addr);
+    if(write_client_msg(fd, 250, MSG_HELLO, data->client_addr) == FAIL){
+      DEBUG_CLNT("Write Failed, Abort Session");
+      put_err("Wrie to Client");
+      session = SESSION_ABORT;
+    }
+  } else {
+    if (result == READ_ERR){
+      session = SESSION_ABORT;
+    } else {
+      if(result == READ_QUIT){
+	session = SESSION_QUIT;
+      }else {
+	session = SESSION_RESET;
+      }
+    }
+  }
 
   while(session == SESSION_RUN || session == SESSION_RESET){
     session = session_sequence(fd, &data);
 
-//TODO Hier Absenden!!
+
+    if(session == SESSION_SEND){
+      DEBUG_CLNT("Forward Mail");
+      forward_mail(fd, data);
+      session = SESSION_RUN;
+    }
+
 
     if(data != NULL){ 
-      if(data->client_addr != NULL){
-	free(data->client_addr);
-      }
       if(data->sender_mail != NULL){
 	free(data->sender_mail);
+	data->sender_mail=NULL;
       }
       if(data->rcpt_mail != NULL){
 	free(data->rcpt_mail);
+	data->rcpt_mail=NULL;
       }
       if(data->data != NULL){
 	walker = data->data;
@@ -365,8 +365,16 @@ int start_session(int fd){
 	  free(tmp->data);
 	  free(tmp);
 	}
+	data->data =  NULL;
       }
     }
+
+  }
+  if(data != NULL){ 
+    if(data->client_addr != NULL){
+      free(data->client_addr);
+    }
+    free(data);
   }
   return 0;
 }
