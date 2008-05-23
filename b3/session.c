@@ -38,6 +38,13 @@ typedef struct data_line{
   struct data_line *next;
 } data_line_t;
 
+typedef struct mail_data{
+  char* client_addr;
+  char* sender_mail;
+  char* rcpt_mail;
+  data_line_t * data;
+} mail_data_t;
+
 static int write_client_msg(int fd, int status, const char *msg, char *add){
   int len, ret = FAIL;
   char *buff;
@@ -210,14 +217,15 @@ int read_data(int fd, data_line_t **data_head){
   return READ_ERR;
 }
 
-int session_sequence(int fd){
-  char *client_addr = NULL;
-  char *sender_mail = NULL;
-  char *rcpt_mail = NULL;
+int session_sequence(int fd, mail_data_t **mail_d){
+  mail_data_t * data  ;
   int result;
-  data_line_t * data = NULL, *walker;
+  data_line_t * walker;
   int i = 0;
   char buff[10];
+
+  data = malloc(sizeof(mail_data_t));
+  *mail_d = data;
 
   // GREET
   DEBUG_CLNT("Greet Client"); 
@@ -229,10 +237,10 @@ int session_sequence(int fd){
   
   //HELO
   DEBUG_CLNT("Wait for HELO");
-  result = fetch_input_line(fd, "HELO", ' ', check_addr, &client_addr);
+  result = fetch_input_line(fd, "HELO", ' ', check_addr, &(data->client_addr));
   if (result == READ_OK){
-    DEBUG_CLNT_S("Client Helo", client_addr);
-    if(write_client_msg(fd, 250, MSG_HELLO, client_addr) == FAIL){
+    DEBUG_CLNT_S("Client Helo", data->client_addr);
+    if(write_client_msg(fd, 250, MSG_HELLO, data->client_addr) == FAIL){
       DEBUG_CLNT("Write Failed, Abort Session");
       put_err("Wrie to Client");
       return SESSION_ABORT;
@@ -243,10 +251,10 @@ int session_sequence(int fd){
 
   //MAIL FROM
   DEBUG_CLNT("Wait for MAIL FROM");
-  result = fetch_input_line(fd, "MAIL FROM", ':', check_mail, &sender_mail);
+  result = fetch_input_line(fd, "MAIL FROM", ':', check_mail, &(data->sender_mail));
   if (result == READ_OK){
-    DEBUG_CLNT_S("Sender Mail", sender_mail);
-    if(write_client_msg(fd, 250, MSG_SENDER, sender_mail) == FAIL){
+    DEBUG_CLNT_S("Sender Mail", data->sender_mail);
+    if(write_client_msg(fd, 250, MSG_SENDER, data->sender_mail) == FAIL){
       DEBUG_CLNT("Write Failed, Abort Session");
       put_err("Wrie to Client");
       return SESSION_ABORT;
@@ -258,10 +266,10 @@ int session_sequence(int fd){
 
   //RCPT TO
   DEBUG_CLNT("Wait for RCPT TO");
-  result = fetch_input_line(fd, "RCPT TO", ':', check_mail, &rcpt_mail);
+  result = fetch_input_line(fd, "RCPT TO", ':', check_mail, &(data->rcpt_mail));
   if (result == READ_OK){
-    DEBUG_CLNT_S("rcpt Mail", rcpt_mail);
-    if(write_client_msg(fd, 250, MSG_RCPT, rcpt_mail) == FAIL){
+    DEBUG_CLNT_S("rcpt Mail", data->rcpt_mail);
+    if(write_client_msg(fd, 250, MSG_RCPT, data->rcpt_mail) == FAIL){
       DEBUG_CLNT("Write Failed, Abort Session");
       put_err("Wrie to Client");
       return SESSION_ABORT;
@@ -284,11 +292,12 @@ int session_sequence(int fd){
     return (result == READ_ERR ? SESSION_ABORT : (result == READ_QUIT ? SESSION_QUIT : SESSION_RESET));
   }
 
+  // Read DATA!!
   DEBUG_CLNT("Reading DATA");
-  result = read_data(fd, &data);
+  result = read_data(fd, &(data->data));
   if (result == READ_OK){
     DEBUG_CLNT("Readed Data:");
-    walker = data;
+    walker = data->data;
     while (walker != NULL){
       DEBUG_CLNT_S("", walker->data);
       walker = walker->next;  
@@ -311,9 +320,6 @@ int session_sequence(int fd){
     }
   }
 
-
-// Read DATA!!
-
   //QUIT
   DEBUG_CLNT("Wait for QUIT");
   result = fetch_input_line(fd, "QUIT", '\0', NULL, NULL);
@@ -328,22 +334,39 @@ int session_sequence(int fd){
     return (result == READ_ERR ? SESSION_ABORT : (result == READ_QUIT ? SESSION_QUIT : SESSION_RESET));
   }
 
-  if(client_addr != NULL){
-    free(client_addr);
-  }
-  if(sender_mail != NULL){
-    free(sender_mail);
-  }
-  if(rcpt_mail != NULL){
-    free(rcpt_mail);
-  }
   return SESSION_QUIT;
 }
 
 int start_session(int fd){
   int session = SESSION_RUN;
+  mail_data_t *data = NULL;
+  data_line_t *tmp, *walker;
+
   while(session == SESSION_RUN || session == SESSION_RESET){
-    session = session_sequence(fd);
+    session = session_sequence(fd, &data);
+
+//TODO Hier Absenden!!
+
+    if(data != NULL){ 
+      if(data->client_addr != NULL){
+	free(data->client_addr);
+      }
+      if(data->sender_mail != NULL){
+	free(data->sender_mail);
+      }
+      if(data->rcpt_mail != NULL){
+	free(data->rcpt_mail);
+      }
+      if(data->data != NULL){
+	walker = data->data;
+	while (walker != NULL){
+	  tmp = walker;
+	  walker = walker->next;
+	  free(tmp->data);
+	  free(tmp);
+	}
+      }
+    }
   }
   return 0;
 }
