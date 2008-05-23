@@ -21,7 +21,7 @@ data_line_t *new_proto_entry(char *data){
   char *pos;
 
   new->next = NULL;
-  new->data = malloc(sizeof(char) * (strlen(data)+2) );
+  new->data = malloc(sizeof(char) * (strlen(data)+10) );
   strcpy(new->data, data);
 
   if((pos = strchr(new->data, '\n')) != NULL){
@@ -61,7 +61,7 @@ int read_remote(int fd, char *buff, size_t size, data_line_t * protocol_end){
 int write_remote(int fd, char* buff, size_t size, data_line_t * protocol_end){
   int ret = 0;
 
-  if((ret = read(fd, buff, size)) > 0){
+  if((ret = write(fd, buff, size)) > 0){
     protocol_end->next = new_proto_entry(buff);
     return ret;
   } else {
@@ -99,13 +99,15 @@ int try_command(int remote_fd, char *command, int expected_return, data_line_t *
   char buff[1024];
   char *pos;
   DEBUG_CLNT_S("Try Remote Command", command);
-  snprintf(buff, 1024, "%s\r\n", command);
   for(i = 0; i < SEND_MAXTRY; i++){
+    snprintf(buff, 1024, "%s\r\n", command);
     if (write_remote(remote_fd, buff, strlen(buff), protocol) <= 0){
+    //if (write(remote_fd, buff, strlen(buff)) <= 0){
       put_err("Writing on Remote Socket");
       DEBUG_CLNT("Error while Writing on remote socket");
       return COMMAND_WRITE;
     }
+    DEBUG_CLNT("Written .. Read Reply");
     protocol = protocol->next;
     if(read_remote(remote_fd, buff, 1024, protocol) <= 0){
       return COMMAND_READ;
@@ -139,7 +141,12 @@ int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **pro
   data_line_t *line = NULL;
   data_line_t *protocol_end;
 
-  protocol_end = new_proto_entry("250-Begin Forward .. Protocoll:");
+  protocol_end = new_proto_entry("Begin Forward .. Protocoll:");
+  *protocol = protocol_end;
+
+  protocol_end->next = new_proto_entry("-----------------------------------------");
+  protocol_end = protocol_end->next;
+
 
   if(read_remote(remote_fd, buff, 1024, protocol_end) <= 0){
     return FAIL;
@@ -202,6 +209,9 @@ int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **pro
   }
   protocol_end = wind_proto(protocol_end);
   
+  protocol_end->next = new_proto_entry("-----------------------------------------");
+  protocol_end = protocol_end->next;
+
   return OK;
 }
 

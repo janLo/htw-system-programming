@@ -14,8 +14,7 @@
 #define MSG_DATA_FAIL 	"%d Message Accepted but forward failed\r\n"
 #define MSG_MEM		"%d Requested mail action aborted: exceeded storage allocation\r\n"
 #define MSG_SEQ		"%d Bad Sequence of Commands\r\n"
-
-#define MSG_PROTO        "%d-PROTOCOL: %s\r\n"
+#define MSG_PROTO       "%d-Poto: %s\r\n"
 
 
 

@@ -290,10 +290,11 @@ int session_sequence(int fd, mail_data_t **mail_d){
   return SESSION_SEND;
 }
 
-void put_forward_proto(int status, int fd, data_line_t *proto){
+void put_forward_proto(int fd, int status, data_line_t *proto){
   data_line_t *walker;
   walker = proto;
   while (walker != NULL){
+    DEBUG_CLNT_S("Write Proto", walker->data);
     write_client_msg(fd, status, MSG_PROTO, walker->data);
     walker = walker->next;
   }
