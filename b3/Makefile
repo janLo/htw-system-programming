@@ -1,14 +1,20 @@
-CFLAGS=-g -DIS_DEBUG -Wall  -DUSE_DMALLOC
-LDFLAGS=-lpthread  -ldmalloc
 LDFLAGS=-lpthread 
-CFLAGS=-g -DIS_DEBUG -Wall
+CFLAGS=$(DEBUG) -Wall
 LD=gcc 
-
+BIN_NAME=smtp_relay
 OBJS=smtprelay.o connection.o session.o sender.o
 
-smtp_relay: $(OBJS)
-	$(LD) $(LDFLAGS) -o smtp_relay $(OBJS)
 
+all:
+	$(MAKE) binary
+	rm -f *.o
+	$(MAKE) binary_debug
+
+binary: $(OBJS)
+	$(LD) $(LDFLAGS) -o $(BIN_NAME) $(OBJS)
+
+binary_debug:
+	$(MAKE) binary 'DEBUG=-g -DIS_DEBUG' 'BIN_NAME=smtp_relay_debug'
 
 smtprelay.o: smtprelay.h connection.h
 
@@ -19,4 +25,4 @@ sender.o: sender.h connection.h smtprelay.h
 connection.o: connection.h smtprelay.h session.h
 
 clean: 
-	rm -f *.o smtp_relay
+	rm -f *.o smtp_relay smtp_relay_debug

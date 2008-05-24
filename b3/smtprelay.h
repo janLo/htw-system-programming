@@ -26,12 +26,13 @@
   #define DEBUG_CLNT_S(x,y) 	DEBUG_SWITCH_TEST( fprintf(stderr, DEBUG_PREF DEBUG_THREAD_PREF "%s: %s\n",pthread_self(),x,y));
   #define DEBUG_CLNT_S_S(x,y,z)	DEBUG_SWITCH_TEST( fprintf(stderr, DEBUG_PREF DEBUG_THREAD_PREF "%s %s: %s\n",pthread_self(),x,y,z));
 #else
-  #define DEBUG
+  #define DEBUG(x)
   #define DEBUG_N(x,y) 
   #define DEBUG_S(x,y) 
   #define DEBUG_CLNT(x) 	
-  #define DEBUG_CLNT_S(x,x) 	
-  #define DEBUG_CLNT_S_S(x,x,z)	
+  #define DEBUG_CLNT_N(x,y) 	
+  #define DEBUG_CLNT_S(x,y) 	
+  #define DEBUG_CLNT_S_S(x,y,z)	
 #endif
 
 #define ERR_OPT_SERV_ADD 	"Bind Address not valid!"

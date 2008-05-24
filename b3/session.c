@@ -55,13 +55,25 @@ int write_client_msg(int fd, int status, const char *msg, char *add){
   return ret;
 }
 
+// Every Hostname longer than 1 char is OK for me
+// (I've host aliases with 2 chars)
 int check_addr(char * addr){
-  //TODO: Überprüfung, ob valide URL/ip
-  return ARG_OK;
+  return ((strlen(addr) > 1) ? ARG_OK : ARG_BAD);
 }
+
+// I think, a 3 char Name, a @ and a valid 
+// hostname is enough to say 'the adress is valid'.
+// If not, the Forward Server will tell us.
 int check_mail(char * addr){
-  //TODO: Überprüfung, ob valide URL/ip
-  return ARG_OK;
+  char *pos = strchr(addr, '@');
+  if(pos != NULL){
+    if (check_addr(pos+1) == ARG_OK){
+      if ((pos - addr) > 2){
+	return ARG_OK;
+      }
+    }
+  }
+  return ARG_BAD;
 }
 
 static int check_input(char *buff,  char *prefix, char delim, int (*check_fkt)(char *), char **val){

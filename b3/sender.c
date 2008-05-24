@@ -189,9 +189,9 @@ int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **pro
       DEBUG_CLNT("Error while Writing on remote socket");
       return COMMAND_WRITE;
     }
+    protocol_end = wind_proto(protocol_end);
     line = line->next;
   }
-  protocol_end = wind_proto(protocol_end);
    
   snprintf(buff, 1024, ".");
   if(try_command(remote_fd, buff, 250, protocol_end) != COMMAND_OK){
