@@ -13,9 +13,6 @@ enum command{
   COMMAND_FAIL
 };
 
-char * remote_addr = DEFAULT_REMOTEADDR;
-char * remote_port = DEFAULT_REMOTEPORT;
-
 data_line_t *new_proto_entry(char *data){
   data_line_t *new = malloc(sizeof(data_line_t));
   char *pos;
@@ -52,7 +49,7 @@ int read_remote(int fd, char *buff, size_t size, data_line_t * protocol_end){
     protocol_end->next = new_proto_entry(buff);
     return ret;
   } else {
-    put_err("Reading from Remote Socket");
+    ERROR_SYS("Reading from Remote Socket");
     DEBUG_CLNT("Error while Reading from remote socket");
     return ret;
   }
@@ -65,7 +62,7 @@ int write_remote(int fd, char* buff, size_t size, data_line_t * protocol_end){
     protocol_end->next = new_proto_entry(buff);
     return ret;
   } else {
-    put_err("Writing on Remote Socket");
+    ERROR_SYS("Writing on Remote Socket");
     DEBUG_CLNT("Error while Writing on remote socket");
     return ret;
   }
@@ -103,7 +100,7 @@ int try_command(int remote_fd, char *command, int expected_return, data_line_t *
     snprintf(buff, 1024, "%s\r\n", command);
     if (write_remote(remote_fd, buff, strlen(buff), protocol) <= 0){
     //if (write(remote_fd, buff, strlen(buff)) <= 0){
-      put_err("Writing on Remote Socket");
+      ERROR_SYS("Writing on Remote Socket");
       DEBUG_CLNT("Error while Writing on remote socket");
       return COMMAND_WRITE;
     }
@@ -188,7 +185,7 @@ int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **pro
     DEBUG_CLNT_S("Write Data to Remote", line->data);
     snprintf(buff, 1024, "%s\r\n", line->data);
     if (write_remote(remote_fd, buff, strlen(buff), protocol_end) <= 0){
-      put_err("Writing on Remote Socket");
+      ERROR_SYS("Writing on Remote Socket");
       DEBUG_CLNT("Error while Writing on remote socket");
       return COMMAND_WRITE;
     }
@@ -219,7 +216,7 @@ int forward_mail(int fd, mail_data_t* data){
   int remote_fd;
   data_line_t *protocol;
 
-      remote_fd = create_remote_conn(remote_addr, remote_port);
+      remote_fd = create_remote_conn(app->remote_addr, app->remote_port);
       if(send_mail(fd, remote_fd, data, &protocol) == OK){
 	put_forward_proto(fd, 250, protocol);
       } else {

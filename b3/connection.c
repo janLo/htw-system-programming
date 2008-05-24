@@ -29,20 +29,20 @@ static int create_socket(){
   int serv_sock;
 
   if((serv_sock = socket(PF_INET, SOCK_STREAM, 0)) == -1){
-    put_err("socket creation");
+    ERROR_SYS("socket creation");
     return -1;
   }
   DEBUG_N("Socket Created. fd", serv_sock);
 
   if(bind(serv_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1){
-    put_err("socket binding");
+    ERROR_SYS("socket binding");
     quit_conn(serv_sock);
     return -1;
   }
   DEBUG("Socket bound");
 
   if(listen(serv_sock, MAX_WAIT_CONN) == -1){
-    put_err("socket listening");
+    ERROR_SYS("socket listening");
     quit_conn(serv_sock);
     return -1;
   }
@@ -82,19 +82,19 @@ static int wait_connect(int server_sock){
     DEBUG("Wait for Client");
 
     if((client_sock = accept(server_sock, (struct sockaddr*)&client_addr, (unsigned int*)&addr_len)) == -1){
-      put_err("socket accept");
+      ERROR_SYS("socket accept");
     }
     DEBUG("Client Accepted");
 
     if((client_data = (client_thread_data_t*)malloc(sizeof(client_thread_data_t))) == NULL){
-      put_err("alloc mem for client data");
+      ERROR_SYS("alloc mem for client data");
       return 0;
     }
     client_data->client_sock = client_sock;
     client_data->client_addr = client_addr;
 
     if(pthread_create(&tid, NULL, process_client, client_data) != 0){
-      put_err("create thread");
+      ERROR_SYS("create thread");
       quit_conn(client_sock);
     }
     pthread_detach(tid);
@@ -125,7 +125,7 @@ int create_conn(char *addr, char *port){
 
 void quit_conn(int fd){
   if(close(fd) != 0){
-    put_err("Close Conn");
+    ERROR_SYS("Close Conn");
     DEBUG_CLNT("Close Connection");
   }
 }
@@ -141,13 +141,13 @@ int create_remote_conn(char *addr, char *port){
   remote_addr.sin_family = AF_INET;
 
   if((remote_sock = socket(PF_INET, SOCK_STREAM, 0)) == -1){
-    put_err("remote socket creation");
+    ERROR_SYS("remote socket creation");
     return -1;
   }
   DEBUG_CLNT_N("Remote Socket Created. fd", remote_sock);
 
   if(connect(remote_sock, (struct sockaddr*)&remote_addr, sizeof(remote_addr)) == -1){
-    put_err("Remote sockte Connecting");
+    ERROR_SYS("Remote sockte Connecting");
     close(remote_sock);
     return -1;
   }
@@ -158,7 +158,7 @@ int create_remote_conn(char *addr, char *port){
 
 void quit_remote_conn(int fd){
   if(close(fd) != 0){
-    put_err("Close remote Conn");
+    ERROR_SYS("Close remote Conn");
     DEBUG_CLNT("Close Remote Connection");
   }
 }

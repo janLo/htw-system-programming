@@ -164,7 +164,7 @@ static int fetch_input_line(int fd, char *prefix, char delim, int (*check_fkt)(c
 	//Keine Daten
       } else {
 	DEBUG_CLNT("Read error");
-	put_err("Reading Data from Client");
+	ERROR_SYS("Reading Data from Client");
 	//lesefehler
 	return READ_ERR;
       }
@@ -228,7 +228,7 @@ int session_sequence(int fd, mail_data_t **mail_d){
     DEBUG_CLNT_S("Sender Mail", data->sender_mail);
     if(write_client_msg(fd, 250, MSG_SENDER, data->sender_mail) == FAIL){
       DEBUG_CLNT("Write Failed, Abort Session");
-      put_err("Wrie to Client");
+      ERROR_SYS("Wrie to Client");
       return SESSION_ABORT;
     }
   } else { 
@@ -243,7 +243,7 @@ int session_sequence(int fd, mail_data_t **mail_d){
     DEBUG_CLNT_S("rcpt Mail", data->rcpt_mail);
     if(write_client_msg(fd, 250, MSG_RCPT, data->rcpt_mail) == FAIL){
       DEBUG_CLNT("Write Failed, Abort Session");
-      put_err("Wrie to Client");
+      ERROR_SYS("Wrie to Client");
       return SESSION_ABORT;
     }
   } else { 
@@ -257,7 +257,7 @@ int session_sequence(int fd, mail_data_t **mail_d){
     DEBUG_CLNT("DATA ....");
     if(write_client_msg(fd, 354, MSG_DATA, NULL) == FAIL){
       DEBUG_CLNT("Write Failed, Abort Session");
-      put_err("Wrie to Client");
+      ERROR_SYS("Wrie to Client");
       return SESSION_ABORT;
     }
   } else { 
@@ -279,7 +279,7 @@ int session_sequence(int fd, mail_data_t **mail_d){
     if(result == READ_MEM){
       if(write_client_msg(fd, 552, MSG_MEM, NULL) == FAIL){
 	DEBUG_CLNT("Write Failed, Abort Session");
-	put_err("Wrie to Client");
+	ERROR_SYS("Wrie to Client");
 	return SESSION_ABORT;
       } 
       return SESSION_ABORT;
@@ -312,9 +312,9 @@ int start_session(int fd){
 
   // GREET
   DEBUG_CLNT("Greet Client"); 
-  if(write_client_msg(fd, 220, MSG_GREET,server_addr) == FAIL){
+  if(write_client_msg(fd, 220, MSG_GREET,app->server_addr) == FAIL){
     DEBUG_CLNT("Write Failed, Abort Session");
-    put_err("Wrie to Client");
+    ERROR_SYS("Wrie to Client");
     session = SESSION_ABORT;
   }
 
@@ -325,7 +325,7 @@ int start_session(int fd){
     DEBUG_CLNT_S("Client Helo", data->client_addr);
     if(write_client_msg(fd, 250, MSG_HELLO, data->client_addr) == FAIL){
       DEBUG_CLNT("Write Failed, Abort Session");
-      put_err("Wrie to Client");
+      ERROR_SYS("Wrie to Client");
       session = SESSION_ABORT;
     }
   } else {
@@ -350,13 +350,13 @@ int start_session(int fd){
       if(result == OK){      
 	if(write_client_msg(fd, 250, MSG_DATA_ACK,NULL) == FAIL){
 	  DEBUG_CLNT("Write Failed, Abort Session");
-	  put_err("Wrie to Client");
+	  ERROR_SYS("Wrie to Client");
 	  session = SESSION_ABORT;
 	}
       } else {
 	if(write_client_msg(fd, 451, MSG_DATA_FAIL,NULL) == FAIL){
 	  DEBUG_CLNT("Write Failed, Abort Session");
-	  put_err("Wrie to Client");
+	  ERROR_SYS("Wrie to Client");
 	  session = SESSION_ABORT;
 	}
 
