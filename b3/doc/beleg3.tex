@@ -153,6 +153,36 @@ Diese Funktion dient zur Ausgabe eines Fehlers. Dabei wird zuerst das übergeben
 \subsection{Funktion put\_err\_str}\label{fn:put_err_str}
 Diese Funktion gibt einfach den im Argument übergebenen Fehlertext inklusive der in \textit{ERROR\_PREF} definierten Formatierung auf \textit{stderr} ausgegeben.
 
+\section{Modul connection}\label{mod:connection}
+\subsection{Beschreibung}
+Das Modul connection beherbergt alle Funktionen, die sich mit den Socketverbindungen beschäftigt. Dies bezieht sich sowohl auf die Verbindungen zu den Clients, als auch der zum remote Server.
+
+Zudem werden hier die neuen Threads für die Clients erzeugt, da jeder Client seinen eigenen Thread bekommt. Auch der Interupt handler ist hier definiert, da in diesem die Socketverbindung des Servers beendet werden muss.
+
+\subsection{Funktion create\_socket}\label{fn:create_socket}
+Dies erzeugt einen neuen Inet Socket, welcher hier auch gleich an die richtige Addresse gebunden wird.
+
+\subsection{process\_client}\label{fn:process_client}
+Dies ist die erste Funktion, die im neuen Thread aufgerufen wird.
+
+Sie startet mittels \ref{fn:start_session} die Client Session, und schließt den Client Socket wenn die Session beendet wurde.
+
+\subsection{wait\_connect}\label{fn:wait_connect}
+Hier wird auf Client Verbindungen gewartet. 
+
+Kommt solch eine zustande, so wird ein neuer Thread gestartet und in diesem die Funktion \ref{fn:process_client} zum starten einer neuen Sitzung aufgerufen.
+
+Der neue Thread wird gleich mittels \textit{pthread\_detach} detacht, um Speicherlöchern durch nicht aufgeräumte Threads vorzubäugen.
+
+\subsection{create\_conn}\label{create_conn}
+Diese Funktion dient zum öffnen des Socket. Sie bekommt Hostname und Port zum binden übergeben und generiert daraus eine \textit{sockaddr\_in}.
+
+Dann wird der Socket mit \ref{fn:create_socket} geöffnet und mit \ref{fn:wait_connect} auf Clients gewartet.
+
+Am Ende wird mit \ref{fn:quit_conn} die Verbindung beendet (sollte nie passieren, da das Warten nur durch ein Signal oder einen Fehler unterbrochen wird).
+
+%TODO QuitConn ist das nächste
+
 
 
 
