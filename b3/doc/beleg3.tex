@@ -6,6 +6,7 @@
 \usepackage[babel,german=quotes]{csquotes}
 \usepackage{fancybox}
 \usepackage{color}
+\usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{floatflt}
 \usepackage{graphicx}
@@ -106,45 +107,92 @@ Dabei muss eine Normale Sitzung immer nach dem SMTP-Protokoll (siehe \ref{rfc282
 Die Replycodes des Servers sind entsprechend dem SMTP Standard (siehe \ref{rfc2821}) implementiert.
 
 \chapter{Programmdokumentation}
-\section{}<++>
+\section{Modul smtprelay}\label{mod:smtprelay}
+\subsection{Beschreibung}
+Hier sind alle Funktionen definiert, die vor der Öffnung des Sockets aufzurufen sind. Außerdem ist die die Fehlerausgabe, sowie die debug Ausgabe (im Header) definiert. 
+
+Die Debugausgabe ist durch mehrere Makros realisiert, welche nur dann einen Effekt haben, wenn die debug Variante des Programmes gebaut wird (siehe \ref{build}. Die Makros haben alle unterschiedliche Argumente, je nachdem was ausgegeben werden soll. Zudem sind sie noch unterteilt in normale und DEBUG\_CLNT Makros, welche zusätzlich noch die aktuelle Threadid ausgeben.
+
+Die Quellen sind in den Listings \ref{smtprelay.c} und \ref{smtprelay.h} aufgeführt.
+
+\subsection{Funktion main}\label{fn:main}
+Die Main Funktion ist die Funktion, welche im Programm als erstes aufgerufen wird. Sie stellt den Startpunkt des Programms dar.
+
+Hier werden zuerst die Interupt Handler installiert, welche dafür sorgen, dass der Server Socket auch ordnungsgemäß geschlossen wird. Anschließend wird die Funktion \ref{fn:process_opt} zum verarbeiten der Kommandozeilenargumente aufgerufen und \ref{fn:create_conn} aus \ref{mod:connection} aufgerufen um den Socket zu kreieren.
+
+Wenn diese Funktion zurückkehrt wird das Programm beendet.
+
+\subsection{Funktion process\_opt}\label{fn:process_opt}
+Diese Funktion wertet mittels getopt und den Funktionen \ref{fn:host_opt} und \ref{fn:port_opt} die Kommandozeilenargumente aus, schreibt diese in die globale Variable app, in der alle Konfigurationsdaten gehalten werden und ruft bei Bedarf die Funktion zur Aufgabe der Hilfe \ref{fn:write_help} auf.
+
+Die Rückgabe ist im Erfolgsfall OK, sonst FAIL (beide Werte definiert in Listing \ref{smtprelay.h})
+
+\subsection{Funktion write\_help}\label{fn:write_help}
+Diese Funktion dient dazu, eine Hilfe zur Programmbenutzung auszugeben.
+
+\subsection{Funktion host\_opt}\label{fn:host_opt}
+Diese Funktion dient dazu, die Addressargumente zu prüfen und umzuwandeln.
+
+Das Argument \textit{buff} beinhaltet dabei das Kommandozeilenargument und \textit{err} eine Fehlermeldung, welche ausgegeben werden soll, wenn das Argument nicht valide ist.
+
+Wird festgestellt, das das Argument eine IP Addresse war, so wird diese in einen neuen Speicherbereich kopiert und dessen Addresse zurückgegeben.
+
+Ansonsten wird versucht, das Argument als Hostnamen zu nutzen und per \textit{gethostbyname} die zugehörige IP Addresse zu ermitteln. Gelingt dies, so wird die IP Addresse als String in einen neuen Speicherbereich geschrieben und dessen Addresse zurückgegeben.
+
+Sollte es nicht möglich sein, eine IP Addresse zu ermitteln, so wird NULL zurückgegeben.
+
+
 
 
 \begin{appendix}
   \chapter{Anhang}
   \section{Quellen}
-  \lstset{language=[ANSI]C}
-\lstset{framexleftmargin=20pt}
-\lstset{basicstyle=\scriptsize}
-\lstset{backgroundcolor=\color[rgb]{1,0.98,0.9}}
-  \lstset{numberstyle=\tiny}
-  \lstset{numbersep=7pt}
-  \lstset{columns=fixed}
-  \lstset{numbers=left}
-  \lstset{breaklines=true}
-  \lstset{breakatwhitespace=true}
+
+ \lstset{language=[ANSI]C, 
+     keywordstyle=\color{blue!80!black!100}, 
+     identifierstyle=, 
+     commentstyle=\color{green!50!black!100}, 
+     stringstyle=\ttfamily, 
+     breaklines=true, 
+     columns=fixed,
+     numbers=left, 
+     framexleftmargin=20pt,
+     numbersep=9pt,
+     numberstyle=\tiny, 
+     frame=single, 
+     caption={C-Code} 
+        backgroundcolor=\color{Beige}, 
+      basicstyle=\small\ttfamily\bfseries, % print whole listing small 
+      linewidth=\linewidth,       % Zeilenbreite 
+	breaklines=true,
+    showstringspaces=false,
+      breakatwhitespace=true, %Umbruch an Leerzeichen 
+      captionpos=b 
+ }
+
 
   \subsection{smtprelay}
-%  \lstinputlisting[caption=smtprelay.c,label=smtprelay.c]{../smtprelay.c}
-%  \pagebreak
+  \lstinputlisting[caption=smtprelay.c,label=smtprelay.c]{../smtprelay.c}
+  \pagebreak
   \lstinputlisting[caption=smtprelay.h,label=smtprelay.h]{smtprelay.h}
   \pagebreak
-%  \subsection{connection}
-%  \lstinputlisting[caption=connection.c,label=connection.c]{../connection.c}
-%  \pagebreak
-%  \lstinputlisting[caption=connection.h,label=connection.h]{../connection.h}
-%  \pagebreak
-%  \subsection{session}
-%  \lstinputlisting[caption=session.c,label=session.c]{../session.c}
-%  \pagebreak
-%  \lstinputlisting[caption=session.h,label=session.h]{../session.h}
-%  \pagebreak
-%  \subsection{sender}
-%  \lstinputlisting[caption=sender.c,label=sender.c]{../sender.c}
-%  \pagebreak
-%  \lstinputlisting[caption=sender.h,label=sender.h]{../sender.h}
-%%  \pagebreak
-%  \subsection{Makefile}
-%  \lstinputlisting[caption=Makefile,label=Makefile]{../Makefile}
+  \subsection{connection}
+  \lstinputlisting[caption=connection.c,label=connection.c]{../connection.c}
+  \pagebreak
+  \lstinputlisting[caption=connection.h,label=connection.h]{../connection.h}
+  \pagebreak
+  \subsection{session}
+  \lstinputlisting[caption=session.c,label=session.c]{../session.c}
+  \pagebreak
+  \lstinputlisting[caption=session.h,label=session.h]{../session.h}
+  \pagebreak
+  \subsection{sender}
+  \lstinputlisting[caption=sender.c,label=sender.c]{../sender.c}
+  \pagebreak
+  \lstinputlisting[caption=sender.h,label=sender.h]{../sender.h}
+  \pagebreak
+  \subsection{Makefile}
+  \lstinputlisting[caption=Makefile,label=Makefile]{../Makefile}
 
   \section{SMTP Standard}
   \lstset{numbers=none}
