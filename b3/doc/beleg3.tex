@@ -140,6 +140,19 @@ Wird festgestellt, das das Argument eine IP Addresse war, so wird diese in einen
 Ansonsten wird versucht, das Argument als Hostnamen zu nutzen und per \textit{gethostbyname} die zugehörige IP Addresse zu ermitteln. Gelingt dies, so wird die IP Addresse als String in einen neuen Speicherbereich geschrieben und dessen Addresse zurückgegeben.
 
 Sollte es nicht möglich sein, eine IP Addresse zu ermitteln, so wird NULL zurückgegeben.
+\subsection{Funktion port\_opt}\label{fn:port_opt}
+Diese Funktion dient dazu eine per Kommandozeile übergebene Portnummer auf Gültigkeit zu prüfen.
+
+Das Argument \textit{buff} beinhaltet dabei das Kommandozeilenargument und \textit{err} eine Fehlermeldung, welche ausgegeben werden soll, wenn das Argument nicht valide ist.
+
+Ist die übergebene Option eine valide Portnummer, dann wird diese in einen neuen Speicherbereich geschrieben und dessen Adresse zurückgegeben, sonst NULL.
+
+\subsection{Funktion put\_err}\label{fn:put_err}
+Diese Funktion dient zur Ausgabe eines Fehlers. Dabei wird zuerst das übergebene Argument inklusive der in \textit{ERROR\_PREF} definierten Formatierung und anschließend der zu \textit{errno} gehörende Fehlertext mittels \textit{perror} auf \textit{stderr} ausgegeben.
+
+\subsection{Funktion put\_err\_str}\label{fn:put_err_str}
+Diese Funktion gibt einfach den im Argument übergebenen Fehlertext inklusive der in \textit{ERROR\_PREF} definierten Formatierung auf \textit{stderr} ausgegeben.
+
 
 
 
