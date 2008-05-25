@@ -1,0 +1,160 @@
+\documentclass[pdftex,final,a4paper,10pt,notitlepage,halfparskip]{scrreprt}
+
+\usepackage[german,ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[babel,german=quotes]{csquotes}
+\usepackage{fancybox}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{floatflt}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{listings}
+
+\setkomafont{caption}{\footnotesize\linespread{1}\selectfont}
+\setlength{\abovecaptionskip}{-0.1cm}
+\addto\captionsngerman{\renewcommand\figurename{Abb.}}
+
+\title{Systemprogrammierung\\
+- Beleg 3 -}
+\author{Jan Losinski}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter{Allgemeines}
+\section{Aufgabe}
+Entwickeln Sie, in C, C++ (oder Perl), einen "`nutzerfreundlichen"' und "`robusten"' SMTP-Server.
+
+Der Server soll den Clients "{u}ber eine Socketverbindung (freier Port) die SMTP-Kommandos in einer einfachen, verst"{a}ndlichen Form bereitstellen/anfordern, die Eingaben pr"{u}fen, zusammenstellen und zum Senden der Mail an einen SMTP-Server (z.B. mail.informatik.htw-dresden.de, Postfix) schicken. 
+
+Dazu ist ebenfalls eine eigene Socketverbindung zu nutzen, die Nutzung von Kommandos wie mail oder sendmail ist nicht zul"{a}ssig. Dies ist auch nicht m"{o}glich, da der Client, im Sinne der Nutzerfreundlichkeit, eine Sendequittung (zum Test ev. gesamtes Protokoll), erhalten soll. Ob die Kommandos als ein gesamter String oder einzeln gesendet werden, ist freigestellt.
+
+Als Client kann telnet genutzt werden.
+
+Der Server soll gleichzeitig mit mehreren Clients arbeiten k"{o}nnen, daf"{u}r sind Threads zu nutzen.
+
+\section{Herangehensweise}
+Die Aufgabenstellung beschreibt ein simples SMTP Relay, welches E-Mails per SMTP annimmt und einfach weiterleitet. Das macht es n"{o}tig, sowohl die Grundfunktionalit"{a}ten eines SMTP Servers(annahme), als auch die eines Clients (forward) zu implementieren.
+
+Bei der weiteren Analyse der Aufgabe wurde festgestellt, das diese bei der Implmentierung in 4 Module aufgeteilt werden kann:
+\begin{description}
+  \item[smtprelay]
+    Dies beherbergt die main Funktion, k"{u}mmert sich um das parsen der Kommandozeilenoptionen, inkl. nachschlagen der Hostnamen. Zudem ist es f"{u}r die Fehlerausgabe verantwortlich. (Listing \ref{smtprelay.c}, \ref{smtprelay.h}) 
+  \item[connection] 
+    Dies ist f"{u}r die komplette Verbindungsverwaltung inkl. der Erzeugung neuer Client Threads zust"{a}ndig (Listing \ref{connection.c}, \ref{connection.h})
+  \item[session] 
+    Dieses Modul implementiert eine Client-Session. Es beherbergt den kompletten Code zur Kommunikation mit einem Client. (Listing \ref{session.c}, \ref{session.h})
+  \item[sender] 
+    Das sender Modul ist f"{u}r die Kommunikation mit dem remote Server zust"{a}ndig, an welchen die E-Mails weitergeleitet werden. (Listing \ref{sender.c}, \ref{sender.h})
+\end{description}
+
+Das Ziel war, ein einzelnes Binary zu schaffen, welches mittels Kommandozeilen-Optionen konfigurierbar ist und die komplette, in der Augabenstellung geforderte, Funktionalit"{a}t abdekt.
+
+\section{Build}\label{build}
+Zu dem entstandenen Programm existiert ein Makefile (Listing \ref[Makefile]), welches vier wichtige Targets kennt:
+\begin{description}
+  \item[binary] Baut das normale Programm, hier sind die Ausgaben w"{a}hrend der Laufzeit auf kritische Fehler reduziert. 
+  \item[debug] Baut eine Debug-Version des Programmes, welche w"{a}hernd der Laufzeit besonders viele Informationen ausgeben kann .
+  \item[all] Baut sowohl die debug Version des Programms, als auch die normale, nicht-debug Version.
+  \item[clean] L"{o}scht alle Object-Dateien und die erzeugten Binarys. 
+\end{description}
+Das zu erstellende Target kann mittels \textit{make <target>} erzeugt werden. Wird hinter \textit{make} kein Target angegeben, so wird \textit{make all} ausgef"{u}hrt.
+
+
+
+\chapter{Nutzung}
+\section{Server}
+Der Server ist ein einfaches Programm, welchen auf der Kommandozeile ausgef"{u}hrt werden kann.
+
+Er wird komplett "{u}ber die Kommandozeile konfiguriert und kennt dabei folgende Optionen:
+\begin{description}
+  \item[-q] Schaltet in den quiet Mode, in welchem die Fehlerausgaben ausgeschaltet sind.
+  \item[-v] Schaltet den verbose Mode ein, in welchem besonders viele Informationen ausgegeben werden. Diese Option ist jedoch nur in der debug Version vorhanden (siehe \ref{build})
+  \item[-a <bind\_address>] Mit diesem Schalter wird die Addresse angegeben, an die der Server gebunden werden soll. Um die standartm"{a}ßig eingesttelle Addresse zu erfahren f"{u}hren Sie bitte das Programm mit dem Schalter \textit{-h} aus. 
+  \item[-p <bind\_port>] Mit diesem Schalter geben Sie den Port an, an den der Server gebunden werden soll. Auch hier wird der Standardwert durch den Schalter \textit{-h} ausgegeben.
+  \item[-d <remote\_address>] Hiermit kann die Addresse des Remoteservers, an den alle eingehenden E-Mails weitergeleitet werden, angegeben werden. Der Standartwert wird mit dem Schalter \textit{-h} ausgegeben.
+  \item[-r <remote\_port>] Dieser Schalter dient zur Eingabe sed Remoteports, also des Ports, an dem der Remoteserver lauscht. Dtandartwerte sind mit \textit{-h} zu erfragen.
+  \item[-h] Gibt einen Hilfetext mit allen Standartwerten aus. 
+\end{description}
+Addressen die <bind\_address> k"{o}nnen dabei sowohl als IP Addresse, als auch als Hostname angegeben werden.
+
+Wurde das Programm korrekt ausgef"{u}hrt, so lauscht es auf dem angegebenem Port und wartet auf Clients.
+
+Der Remoteserver muss ein SMTP Server sein, welcher Mindestens die Kommandos \textit{HELO}, \textit{MAIL FROM}, \textit{RCPT TO}, \textit{DATA} und \textit{QUIT} versteht. Der Datenblock wiederum muss mit \textit{<CR><LF>.<CR><LF>} abschließbar sein.
+
+\section{Client}
+Der Client muss die wichtigsten SMTP Kommandos beherrschen. Implementiert sind:
+\begin{description}
+  \item[HELO <client\_name>] Anmeldung des Clients.
+  \item[MAIL FROM:<mail\_addr>] Angabe des Absenders.
+  \item[RCPT TO:<mail\_addr>] Angabe des Empf"{a}ngers.
+  \item[DATA] Beginn des Datenblocks (Ende mit \textit{<CR><LF>.<CR><LF>}).
+  \item[QUIT] Beenden der Verbindung.
+  \item[RSET] R"{u}cksetzten der Verbindung bis nach \textit{HELO}. 
+  \item[NOOP] Gibt immer eine 250 zur"{u}ck (zum Bsp. zum Testen der Verbindung).
+\end{description}
+
+Dabei muss eine Normale Sitzung immer nach dem SMTP-Protokoll (siehe \ref{rfc2821}) ablaufen. Das heißt, das zuerst immer ein \textit{HELO} kommen muss, dann beliebig viele Mailbl"{o}cke, wobei ein Mailblock aus \textit{HELO}$\rightarrow$\textit{RCPT TO}$\rightarrow$\textit{DATA}$\rightarrow$<Datenblock mit abschließendem \textit{<CR><LF>.<CR><LF>}> besteht, und abschließend ein \textit{QUIT}.
+
+Die Replycodes des Servers sind entsprechend dem SMTP Standard (siehe \ref{rfc2821}) implementiert.
+
+\chapter{Programmdokumentation}
+\section{}<++>
+
+
+\begin{appendix}
+  \chapter{Anhang}
+  \section{Quellen}
+  \lstset{language=[ANSI]C}
+\lstset{framexleftmargin=20pt}
+\lstset{basicstyle=\scriptsize}
+\lstset{backgroundcolor=\color[rgb]{1,0.98,0.9}}
+  \lstset{numberstyle=\tiny}
+  \lstset{numbersep=7pt}
+  \lstset{columns=fixed}
+  \lstset{numbers=left}
+  \lstset{breaklines=true}
+  \lstset{breakatwhitespace=true}
+
+  \subsection{smtprelay}
+%  \lstinputlisting[caption=smtprelay.c,label=smtprelay.c]{../smtprelay.c}
+%  \pagebreak
+  \lstinputlisting[caption=smtprelay.h,label=smtprelay.h]{smtprelay.h}
+  \pagebreak
+%  \subsection{connection}
+%  \lstinputlisting[caption=connection.c,label=connection.c]{../connection.c}
+%  \pagebreak
+%  \lstinputlisting[caption=connection.h,label=connection.h]{../connection.h}
+%  \pagebreak
+%  \subsection{session}
+%  \lstinputlisting[caption=session.c,label=session.c]{../session.c}
+%  \pagebreak
+%  \lstinputlisting[caption=session.h,label=session.h]{../session.h}
+%  \pagebreak
+%  \subsection{sender}
+%  \lstinputlisting[caption=sender.c,label=sender.c]{../sender.c}
+%  \pagebreak
+%  \lstinputlisting[caption=sender.h,label=sender.h]{../sender.h}
+%%  \pagebreak
+%  \subsection{Makefile}
+%  \lstinputlisting[caption=Makefile,label=Makefile]{../Makefile}
+
+  \section{SMTP Standard}
+  \lstset{numbers=none}
+  \lstset{formfeed=\pagebreak}
+  \lstset{showstringspaces=false}
+
+  \lstset{language=[plain]TeX}
+  \lstinputlisting[caption=SMTP Standard: RFC 2821,label=rfc2821]{rfc2821.txt}
+
+
+\end{appendix}
+
+\end{document}
