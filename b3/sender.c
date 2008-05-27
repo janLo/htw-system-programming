@@ -216,14 +216,19 @@ int forward_mail(int fd, mail_data_t* data){
   int remote_fd;
   data_line_t *protocol;
 
-      remote_fd = create_remote_conn(app->remote_addr, app->remote_port);
-      if(send_mail(fd, remote_fd, data, &protocol) == OK){
-	put_forward_proto(fd, 250, protocol);
-      } else {
-        put_forward_proto(fd, 451, protocol);
-      }
+  if((remote_fd = create_remote_conn(app->remote_addr, app->remote_port)) > 0){ 
+    if(send_mail(fd, remote_fd, data, &protocol) == OK){
+      put_forward_proto(fd, 250, protocol);
+    } else {
+      put_forward_proto(fd, 451, protocol);
+    }
 
-      quit_remote_conn(remote_fd);
-      free_protocol(protocol);
-      return OK;
+    quit_remote_conn(remote_fd);
+    free_protocol(protocol);
+    return OK;
+  } else {
+    protocol = new_proto_entry("Could not connect to Remote Server");
+    put_forward_proto(fd, 451, protocol);
+    free_protocol(protocol);
+  }
 }
