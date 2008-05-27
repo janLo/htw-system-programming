@@ -6,6 +6,7 @@
 #include "smtprelay.h"
 #include "sender.h"
 
+// Represent the Return of the try_command fkt
 enum command{
   COMMAND_OK,
   COMMAND_WRITE,
@@ -13,6 +14,7 @@ enum command{
   COMMAND_FAIL
 };
 
+// Generates a new Protocol Entry
 data_line_t *new_proto_entry(char *data){
   data_line_t *new = malloc(sizeof(data_line_t));
   char *pos;
@@ -31,6 +33,7 @@ data_line_t *new_proto_entry(char *data){
   return new;
 }
 
+// Winds the Protocol to the end
 data_line_t *wind_proto(data_line_t *proto_end){
   data_line_t *tmp1, *tmp2;
 
@@ -42,6 +45,7 @@ data_line_t *wind_proto(data_line_t *proto_end){
   return tmp2;
 }
 
+// read something from the socket
 int read_remote(int fd, char *buff, size_t size, data_line_t * protocol_end){
   int ret = 0;
 
@@ -55,6 +59,7 @@ int read_remote(int fd, char *buff, size_t size, data_line_t * protocol_end){
   }
 }
 
+// Write something to the socket
 int write_remote(int fd, char* buff, size_t size, data_line_t * protocol_end){
   int ret = 0;
 
@@ -68,6 +73,7 @@ int write_remote(int fd, char* buff, size_t size, data_line_t * protocol_end){
   }
 }
 
+// frees the protocol
 void free_protocol(data_line_t * protocol){
   data_line_t * tmp;
   while(protocol != NULL){
@@ -78,6 +84,7 @@ void free_protocol(data_line_t * protocol){
   }
 }
 
+// extracts the replycode from the string
 int extract_status(char* buff){
   int ret = 0;
   char *pos;
@@ -89,6 +96,7 @@ int extract_status(char* buff){
   return ret;
 }
 
+// trys a command some times
 int try_command(int remote_fd, char *command, int expected_return, data_line_t *protocol_end){
   int i;
   data_line_t *protocol = protocol_end;
@@ -130,8 +138,7 @@ int try_command(int remote_fd, char *command, int expected_return, data_line_t *
   return COMMAND_FAIL;
 }
       
-
-
+// plays the SMTP Sequence to the server
 int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **protocol){
   char buff[1024];
   int status;
@@ -143,7 +150,6 @@ int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **pro
 
   protocol_end->next = new_proto_entry("-----------------------------------------");
   protocol_end = protocol_end->next;
-
 
   if(read_remote(remote_fd, buff, 1024, protocol_end) <= 0){
     return FAIL;
@@ -199,7 +205,6 @@ int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **pro
   }
   protocol_end = wind_proto(protocol_end);
 
-
   snprintf(buff, 1024, "QUIT");
   if(try_command(remote_fd, buff, 221, protocol_end) != COMMAND_OK){
     return FAIL;
@@ -212,6 +217,7 @@ int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **pro
   return OK;
 }
 
+// triggers the Mail forwarding and control the protocol pronting
 int forward_mail(int fd, mail_data_t* data){
   int remote_fd, ret;
   data_line_t *protocol;

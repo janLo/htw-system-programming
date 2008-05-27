@@ -7,9 +7,10 @@
 #include "smtprelay.h"
 #include "connection.h"
 
+// Main Config var
 app_settings_t *app = NULL;
 
-
+// Puts a error to stderr
 void put_err(char *src){
   if (src == NULL){
     fprintf(stderr, ERROR_PREF);
@@ -18,6 +19,8 @@ void put_err(char *src){
   }
   perror("");
 }
+
+// also puts a error to stderr
 void put_err_str(char *err){
   if(err != NULL){
     fprintf(stderr, ERROR_PREF "%s \n", err);
@@ -26,6 +29,7 @@ void put_err_str(char *err){
   }
 }
 
+// checks a cmd port option
 char *port_opt(const char *buff, char *err){
   char *port = malloc(sizeof(char)*6);
   int is_digit = 1, i;
@@ -52,6 +56,7 @@ char *port_opt(const char *buff, char *err){
 }
 
 // my own 'make everything to ip-string' function.
+// checks a cmd host option
 char *host_opt(const char *buff, char *err){
   char *addr = malloc(sizeof(char)*16);
   int is_ip = 0, i,j;
@@ -102,10 +107,10 @@ char *host_opt(const char *buff, char *err){
     }
     offset = offset + j +1;
   }
-
   return addr;
 }
 
+// write some helping stuff to the tty
 void write_help(char *appname){
   printf("\n"
 #ifdef IS_DEBUG
@@ -148,7 +153,7 @@ void write_help(char *appname){
 
 }
 
-
+// getopt stuff to fill the config struct
 int process_opt(int argc, char *argv[]){
   int c;
   
@@ -204,6 +209,7 @@ int process_opt(int argc, char *argv[]){
   return OK;
 }
 
+// the main ...
 int main(int argc, char *argv[]){
 
   if(signal(SIGABRT, sig_abrt_conn) == SIG_ERR){

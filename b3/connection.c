@@ -12,6 +12,8 @@
 
 #define MAX_WAIT_CONN 25
 
+
+// Defines some Data given zo the Client Thread
 typedef struct client_thread_data {
   int client_sock;
   struct sockaddr_in client_addr;
@@ -20,11 +22,11 @@ typedef struct client_thread_data {
 
 
 
-struct sockaddr_in serv_addr;  // Server und Clientaddresse
-int serv_sock = -1;
-char * server_addr_string = NULL;
+struct sockaddr_in serv_addr;  		// The Server Address
+int serv_sock = -1;			// The Server Socket
+char * server_addr_string = NULL;	// The Server Address Sting (obsolete since the add structure)
 
-
+// Creates a Socket and bind them to the addess:port
 static int create_socket(){
   int serv_sock;
 
@@ -51,6 +53,7 @@ static int create_socket(){
   return serv_sock;
 }
 
+// Creates a new Thread for a Client
 static void* process_client(void *client_data){
   client_thread_data_t * data = (client_thread_data_t*) client_data;
   int sock = data->client_sock;
@@ -69,6 +72,7 @@ static void* process_client(void *client_data){
   return NULL;
 }
 
+// Wait for client connections
 static int wait_connect(int server_sock){
   int client_sock, addr_len;
   struct sockaddr_in client_addr;
@@ -101,10 +105,8 @@ static int wait_connect(int server_sock){
   }
 }
 
-
+// Triggers the Connection creation
 int create_conn(char *addr, char *port){
-
-
   server_addr_string = addr;
   memset(&serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_port = htons(atoi(port));
@@ -116,13 +118,11 @@ int create_conn(char *addr, char *port){
   }
 
   wait_connect(serv_sock); 
-
   quit_conn(serv_sock);
-
   return 0;
-
 }
 
+// Quits the Connection
 void quit_conn(int fd){
   if(close(fd) != 0){
     ERROR_SYS("Close Conn");
@@ -130,6 +130,7 @@ void quit_conn(int fd){
   }
 }
 
+// Create a remote Connection
 int create_remote_conn(char *addr, char *port){
   int remote_sock;
 
@@ -156,6 +157,7 @@ int create_remote_conn(char *addr, char *port){
   return remote_sock;
 }
 
+// Quits a remote Connection
 void quit_remote_conn(int fd){
   if(close(fd) != 0){
     ERROR_SYS("Close remote Conn");
@@ -163,6 +165,7 @@ void quit_remote_conn(int fd){
   }
 }
 
+// Processes a Signal
 void sig_abrt_conn(int signr){
 #ifdef IS_DEBUG
   switch (signr){
@@ -177,7 +180,7 @@ void sig_abrt_conn(int signr){
   }
 #endif
   if(serv_sock != -1){
-//    shutdown(serv_sock,2);
+    //    shutdown(serv_sock,2);
     quit_conn(serv_sock);
   }
 #ifdef USE_DMALLOC

@@ -5,7 +5,7 @@
 #include "sender.h"
 #include "smtprelay.h"
 
-
+// State Vals for the Session
 enum session {
   SESSION_RUN,
   SESSION_SEND,
@@ -13,6 +13,8 @@ enum session {
   SESSION_RESET,
   SESSION_ABORT
 };
+
+// Return Vals for fetch_input_line
 enum read {
   READ_OK,
   READ_RESET,
@@ -20,6 +22,8 @@ enum read {
   READ_ERR,
   READ_MEM
 };
+
+// Return Vals for check_input
 enum check {
   CHECK_OK,
   CHECK_ARG,
@@ -27,12 +31,15 @@ enum check {
   CHECK_DELIM,
   CHECK_PREF,
 };
+
+// Return Vals for the Argument checkers
 enum check_arg{
   ARG_OK,
   ARG_BAD,
   ARG_BAD_MSG
 };
 
+// Write something to the client
 int write_client_msg(int fd, int status, const char *msg, char *add){
   int len, ret = FAIL;
   char *buff;
@@ -76,6 +83,7 @@ int check_mail(char * addr){
   return ARG_BAD;
 }
 
+// Check the Input of the Client
 static int check_input(char *buff,  char *prefix, char delim, int (*check_fkt)(char *), char **val){
   char *arg;
   int check;
@@ -115,9 +123,9 @@ static int check_input(char *buff,  char *prefix, char delim, int (*check_fkt)(c
     DEBUG_CLNT_S("Read ",buff);
   }
   return CHECK_OK;
-
 }
 
+// Fetches a Input Line from the Socket and check them
 static int fetch_input_line(int fd, char *prefix, char delim, int (*check_fkt)(char *), char **val){
   char buff[1024];
   int len, check;
@@ -185,6 +193,7 @@ static int fetch_input_line(int fd, char *prefix, char delim, int (*check_fkt)(c
   return READ_OK;
 }
 
+// Read the DATA Block
 int read_data(int fd, data_line_t **data_head){
   data_line_t *walker = NULL , *tmp;
   char buffer[1024];
@@ -224,6 +233,7 @@ int read_data(int fd, data_line_t **data_head){
   return READ_ERR;
 }
 
+// process the session Sequence
 int session_sequence(int fd, mail_data_t **mail_d){
   mail_data_t * data  ;
   int result;
@@ -232,7 +242,6 @@ int session_sequence(int fd, mail_data_t **mail_d){
 
   data = *mail_d;
 
-  
   //MAIL FROM
   DEBUG_CLNT("Wait for MAIL FROM");
   result = fetch_input_line(fd, "MAIL FROM", ':', check_mail, &(data->sender_mail));
@@ -246,7 +255,6 @@ int session_sequence(int fd, mail_data_t **mail_d){
   } else { 
     return (result == READ_ERR ? SESSION_ABORT : (result == READ_QUIT ? SESSION_QUIT : SESSION_RESET));
   }
-
 
   //RCPT TO
   DEBUG_CLNT("Wait for RCPT TO");
@@ -297,11 +305,10 @@ int session_sequence(int fd, mail_data_t **mail_d){
       return SESSION_ABORT;
     }
   }
-
-
   return SESSION_SEND;
 }
 
+// puts the forward prtocol to the client
 void put_forward_proto(int fd, int status, data_line_t *proto){
   data_line_t *walker;
   walker = proto;
@@ -312,6 +319,7 @@ void put_forward_proto(int fd, int status, data_line_t *proto){
   }
 }
 
+// initiate a new session
 int start_session(int fd){
   int session = SESSION_RUN;
   mail_data_t *data = NULL;
@@ -377,7 +385,6 @@ int start_session(int fd){
       session = SESSION_RUN;
     }
 
-
     if(data != NULL){ 
       if(data->sender_mail != NULL){
 	free(data->sender_mail);
@@ -398,7 +405,6 @@ int start_session(int fd){
 	data->data =  NULL;
       }
     }
-
   }
   if(data != NULL){ 
     if(data->client_addr != NULL){
