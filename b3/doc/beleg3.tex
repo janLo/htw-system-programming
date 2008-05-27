@@ -237,7 +237,7 @@ Dabei wird einfach geprüft, ob eine mindestens 3 Zeichen lange Zeichenkette, ge
 
 Eine genauere Überprüfung wird auch hier dem Remote Server überlassen, ist aber an dieser Stelle einfach implemetierbar.
 
-\subsection{check\_input}\label{fn:check_input}
+\subsection{Funktion check\_input}\label{fn:check_input}
 Diese Funktion testet eine vom Client stammende gelesene Zeile.
 
 Dazu bekommt sie die gelesene Zeile, ein SMTP Kommando, das erwartet wird, ein Trennzeichen, mit dem das Kommando vom restlichem String getrennt ist, eine Funktion, mit der das Argument des Kommandos überprüft wird und eine Addresse, an die das Argument geschrieben werden soll übergeben.
@@ -301,19 +301,19 @@ Diese Funktion generiert aus der übergebenen Zeichenkette ein neues Element vom
 \subsection{Funktion wind\_proto}\label{wind_proto}
 Diese Funktion bekommt einen Pointer vom Typ \texttt{data\_line\_t}, welcher auf einen beliebigen Protokolleintrag zeigt und gibt einen Pointer vom gleichem Typ zurück, der auf das letzte Element des Protokolls zeigt.
 
-\subsection{read\_remote}\label{read_remote}
+\subsection{Funktion read\_remote}\label{read_remote}
 Dies ist eine Wrapperfunktion für \texttt{read}, die zusätzlich die Fehlerausgabe und das mittscreiben des Protokolls übernimmt.
 
-\subsection{write\_remote}\label{write_remote}
+\subsection{Funktion write\_remote}\label{write_remote}
 Dies ist eine Wrapperfunktion für \texttt{write}, die zusätzlich die Fehlerausgabe und das mittscreiben des Protokolls übernimmt.
 
-\subsection{free\_protocol}\label{free_protocol}
+\subsection{Funktion free\_protocol}\label{free_protocol}
 Die Funktion \texttt{free\_protocol} bekommt den Pointer auf das Protokoll übergeben und gibt dessen Speicher Eintrag für Eintrag wieder frei.
 
 \subsection{extract\_status}\label{extract_status}
 Diese Funktion extrahiert aus einem, vom Remoteserver, empfangenem Sting den Replycode und gibt ihn als \texttt{int} zurück.
 
-\subsection{try\_command}\label{try_command}
+\subsection{Funktion try\_command}\label{try_command}
 
 
 
