@@ -66,7 +66,7 @@ Zu dem entstandenen Programm existiert ein Makefile (Listing \ref[Makefile]), we
   \item[all] Baut sowohl die debug Version des Programms, als auch die normale, nicht-debug Version.
   \item[clean] L"{o}scht alle Object-Dateien und die erzeugten Binarys. 
 \end{description}
-Das zu erstellende Target kann mittels \textit{make <target>} erzeugt werden. Wird hinter \textit{make} kein Target angegeben, so wird \textit{make all} ausgef"{u}hrt.
+Das zu erstellende Target kann mittels \texttt{make <target>} erzeugt werden. Wird hinter \texttt{make} kein Target angegeben, so wird \texttt{make all} ausgef"{u}hrt.
 
 
 
@@ -78,17 +78,17 @@ Er wird komplett "{u}ber die Kommandozeile konfiguriert und kennt dabei folgende
 \begin{description}
   \item[-q] Schaltet in den quiet Mode, in welchem die Fehlerausgaben ausgeschaltet sind.
   \item[-v] Schaltet den verbose Mode ein, in welchem besonders viele Informationen ausgegeben werden. Diese Option ist jedoch nur in der debug Version vorhanden (siehe \ref{build})
-  \item[-a <bind\_address>] Mit diesem Schalter wird die Addresse angegeben, an die der Server gebunden werden soll. Um die standartm"{a}ßig eingesttelle Addresse zu erfahren f"{u}hren Sie bitte das Programm mit dem Schalter \textit{-h} aus. 
-  \item[-p <bind\_port>] Mit diesem Schalter geben Sie den Port an, an den der Server gebunden werden soll. Auch hier wird der Standardwert durch den Schalter \textit{-h} ausgegeben.
-  \item[-d <remote\_address>] Hiermit kann die Addresse des Remoteservers, an den alle eingehenden E-Mails weitergeleitet werden, angegeben werden. Der Standartwert wird mit dem Schalter \textit{-h} ausgegeben.
-  \item[-r <remote\_port>] Dieser Schalter dient zur Eingabe sed Remoteports, also des Ports, an dem der Remoteserver lauscht. Dtandartwerte sind mit \textit{-h} zu erfragen.
+  \item[-a <bind\_address>] Mit diesem Schalter wird die Addresse angegeben, an die der Server gebunden werden soll. Um die standartm"{a}ßig eingesttelle Addresse zu erfahren f"{u}hren Sie bitte das Programm mit dem Schalter \texttt{-h} aus. 
+  \item[-p <bind\_port>] Mit diesem Schalter geben Sie den Port an, an den der Server gebunden werden soll. Auch hier wird der Standardwert durch den Schalter \texttt{-h} ausgegeben.
+  \item[-d <remote\_address>] Hiermit kann die Addresse des Remoteservers, an den alle eingehenden E-Mails weitergeleitet werden, angegeben werden. Der Standartwert wird mit dem Schalter \texttt{-h} ausgegeben.
+  \item[-r <remote\_port>] Dieser Schalter dient zur Eingabe sed Remoteports, also des Ports, an dem der Remoteserver lauscht. Dtandartwerte sind mit \texttt{-h} zu erfragen.
   \item[-h] Gibt einen Hilfetext mit allen Standartwerten aus. 
 \end{description}
 Addressen die <bind\_address> k"{o}nnen dabei sowohl als IP Addresse, als auch als Hostname angegeben werden.
 
 Wurde das Programm korrekt ausgef"{u}hrt, so lauscht es auf dem angegebenem Port und wartet auf Clients.
 
-Der Remoteserver muss ein SMTP Server sein, welcher Mindestens die Kommandos \textit{HELO}, \textit{MAIL FROM}, \textit{RCPT TO}, \textit{DATA} und \textit{QUIT} versteht. Der Datenblock wiederum muss mit \textit{<CR><LF>.<CR><LF>} abschließbar sein.
+Der Remoteserver muss ein SMTP Server sein, welcher Mindestens die Kommandos \texttt{HELO}, \texttt{MAIL FROM}, \texttt{RCPT TO}, \texttt{DATA} und \texttt{QUIT} versteht. Der Datenblock wiederum muss mit \texttt{<CR><LF>.<CR><LF>} abschließbar sein.
 
 \section{Client}
 Der Client muss die wichtigsten SMTP Kommandos beherrschen. Implementiert sind:
@@ -96,13 +96,13 @@ Der Client muss die wichtigsten SMTP Kommandos beherrschen. Implementiert sind:
   \item[HELO <client\_name>] Anmeldung des Clients.
   \item[MAIL FROM:<mail\_addr>] Angabe des Absenders.
   \item[RCPT TO:<mail\_addr>] Angabe des Empf"{a}ngers.
-  \item[DATA] Beginn des Datenblocks (Ende mit \textit{<CR><LF>.<CR><LF>}).
+  \item[DATA] Beginn des Datenblocks (Ende mit \texttt{<CR><LF>.<CR><LF>}).
   \item[QUIT] Beenden der Verbindung.
-  \item[RSET] R"{u}cksetzten der Verbindung bis nach \textit{HELO}. 
+  \item[RSET] R"{u}cksetzten der Verbindung bis nach \texttt{HELO}. 
   \item[NOOP] Gibt immer eine 250 zur"{u}ck (zum Bsp. zum Testen der Verbindung).
 \end{description}
 
-Dabei muss eine Normale Sitzung immer nach dem SMTP-Protokoll (siehe \ref{rfc2821}) ablaufen. Das heißt, das zuerst immer ein \textit{HELO} kommen muss, dann beliebig viele Mailbl"{o}cke, wobei ein Mailblock aus \textit{HELO}$\rightarrow$\textit{RCPT TO}$\rightarrow$\textit{DATA}$\rightarrow$<Datenblock mit abschließendem \textit{<CR><LF>.<CR><LF>}> besteht, und abschließend ein \textit{QUIT}.
+Dabei muss eine Normale Sitzung immer nach dem SMTP-Protokoll (siehe \ref{rfc2821}) ablaufen. Das heißt, das zuerst immer ein \texttt{HELO} kommen muss, dann beliebig viele Mailbl"{o}cke, wobei ein Mailblock aus \texttt{HELO}$\rightarrow$\texttt{RCPT TO}$\rightarrow$\texttt{DATA}$\rightarrow$<Datenblock mit abschließendem \texttt{<CR><LF>.<CR><LF>}> besteht, und abschließend ein \texttt{QUIT}.
 
 Die Replycodes des Servers sind entsprechend dem SMTP Standard (siehe \ref{rfc2821}) implementiert.
 
@@ -133,25 +133,25 @@ Diese Funktion dient dazu, eine Hilfe zur Programmbenutzung auszugeben.
 \subsection{Funktion host\_opt}\label{fn:host_opt}
 Diese Funktion dient dazu, die Addressargumente zu prüfen und umzuwandeln.
 
-Das Argument \textit{buff} beinhaltet dabei das Kommandozeilenargument und \textit{err} eine Fehlermeldung, welche ausgegeben werden soll, wenn das Argument nicht valide ist.
+Das Argument \texttt{buff} beinhaltet dabei das Kommandozeilenargument und \texttt{err} eine Fehlermeldung, welche ausgegeben werden soll, wenn das Argument nicht valide ist.
 
 Wird festgestellt, das das Argument eine IP Addresse war, so wird diese in einen neuen Speicherbereich kopiert und dessen Addresse zurückgegeben.
 
-Ansonsten wird versucht, das Argument als Hostnamen zu nutzen und per \textit{gethostbyname} die zugehörige IP Addresse zu ermitteln. Gelingt dies, so wird die IP Addresse als String in einen neuen Speicherbereich geschrieben und dessen Addresse zurückgegeben.
+Ansonsten wird versucht, das Argument als Hostnamen zu nutzen und per \texttt{gethostbyname} die zugehörige IP Addresse zu ermitteln. Gelingt dies, so wird die IP Addresse als String in einen neuen Speicherbereich geschrieben und dessen Addresse zurückgegeben.
 
 Sollte es nicht möglich sein, eine IP Addresse zu ermitteln, so wird NULL zurückgegeben.
 \subsection{Funktion port\_opt}\label{fn:port_opt}
 Diese Funktion dient dazu eine per Kommandozeile übergebene Portnummer auf Gültigkeit zu prüfen.
 
-Das Argument \textit{buff} beinhaltet dabei das Kommandozeilenargument und \textit{err} eine Fehlermeldung, welche ausgegeben werden soll, wenn das Argument nicht valide ist.
+Das Argument \texttt{buff} beinhaltet dabei das Kommandozeilenargument und \texttt{err} eine Fehlermeldung, welche ausgegeben werden soll, wenn das Argument nicht valide ist.
 
 Ist die übergebene Option eine valide Portnummer, dann wird diese in einen neuen Speicherbereich geschrieben und dessen Adresse zurückgegeben, sonst NULL.
 
 \subsection{Funktion put\_err}\label{fn:put_err}
-Diese Funktion dient zur Ausgabe eines Fehlers. Dabei wird zuerst das übergebene Argument inklusive der in \textit{ERROR\_PREF} definierten Formatierung und anschließend der zu \textit{errno} gehörende Fehlertext mittels \textit{perror} auf \textit{stderr} ausgegeben.
+Diese Funktion dient zur Ausgabe eines Fehlers. Dabei wird zuerst das übergebene Argument inklusive der in \texttt{ERROR\_PREF} definierten Formatierung und anschließend der zu \texttt{errno} gehörende Fehlertext mittels \texttt{perror} auf \texttt{stderr} ausgegeben.
 
 \subsection{Funktion put\_err\_str}\label{fn:put_err_str}
-Diese Funktion gibt einfach den im Argument übergebenen Fehlertext inklusive der in \textit{ERROR\_PREF} definierten Formatierung auf \textit{stderr} ausgegeben.
+Diese Funktion gibt einfach den im Argument übergebenen Fehlertext inklusive der in \texttt{ERROR\_PREF} definierten Formatierung auf \texttt{stderr} ausgegeben.
 
 \section{Modul connection}\label{mod:connection}
 \subsection{Beschreibung}
@@ -177,10 +177,10 @@ Hier wird auf Client Verbindungen gewartet.
 
 Kommt solch eine zustande, so wird ein neuer Thread gestartet und in diesem die Funktion \ref{fn:process_client} zum starten einer neuen Sitzung aufgerufen.
 
-Der neue Thread wird gleich mittels \textit{pthread\_detach} detacht, um Speicherlöchern durch nicht aufgeräumte Threads vorzubäugen.
+Der neue Thread wird gleich mittels \texttt{pthread\_detach} detacht, um Speicherlöchern durch nicht aufgeräumte Threads vorzubäugen.
 
 \subsection{Funktion create\_conn}\label{fn:create_conn}
-Diese Funktion dient zum öffnen des Socket. Sie bekommt Hostname und Port zum binden übergeben und generiert daraus eine \textit{sockaddr\_in}.
+Diese Funktion dient zum öffnen des Socket. Sie bekommt Hostname und Port zum binden übergeben und generiert daraus eine \texttt{sockaddr\_in}.
 
 Dann wird der Socket mit \ref{fn:create_socket} geöffnet und mit \ref{fn:wait_connect} auf Clients gewartet.
 
@@ -192,7 +192,7 @@ Diese Funktion schließt die als Filedescriptor übergebene Socketverbindung.
 
 
 \subsection{Funktion create\_remote\_conn}\label{fn:create_remote_conn}
-Diese Funtion baut eine Verbindung zu dem Remoteserver auf, an den die Mails weitergeleitet werden sollen. Zurückgegeben wird der Filedescriptor des Sokets, \textit{-1} sonst.
+Diese Funtion baut eine Verbindung zu dem Remoteserver auf, an den die Mails weitergeleitet werden sollen. Zurückgegeben wird der Filedescriptor des Sokets, \texttt{-1} sonst.
 
 Die Verbindungsdaten (IP Addresse, Portnummer) werden als Argumente an die Funktion übergeben.
 
@@ -200,7 +200,7 @@ Die Verbindungsdaten (IP Addresse, Portnummer) werden als Argumente an die Funkt
 Diese Funktion schließt die als Filedescriptor übergebene Socketverbindung.
 
 \subsection{Funktion sig\_abrt\_conn}\label{fn:sig_abrt_conn}
-Dies ist der Signal Handler, der aufgerufen wird, wenn eines der Signale \textit{SIGABRT}, \textit{SIGTERM}, \textit{SIGQUIT} oder \textit{SIGINT} eintifft. 
+Dies ist der Signal Handler, der aufgerufen wird, wenn eines der Signale \texttt{SIGABRT}, \texttt{SIGTERM}, \texttt{SIGQUIT} oder \texttt{SIGINT} eintifft. 
 
 Sie schließt den Server Socket und beendet das Programm.
 
@@ -217,9 +217,9 @@ Dazu gehört die Ein- und Ausgabe auf dem Client Socket, die Abarbeitung der im 
 Die Quellen sind in den Listings \ref{session.c} und \ref{session.h} aufgeführt.
 
 \subsection{Funktion write\_client\_msg}\label{fn:write_client_msg}
-Diese Funktion schreibt eine Ausgabe auf den Socket. Die Nachricht ist ein im Header des Modules session \ref{session.h} definierter Formatstring (\textit{MSG\_*}), in den der als Argument übergebene Replycode, sowie ein optionales String Argument eingebaut wird.
+Diese Funktion schreibt eine Ausgabe auf den Socket. Die Nachricht ist ein im Header des Modules session \ref{session.h} definierter Formatstring (\texttt{MSG\_*}), in den der als Argument übergebene Replycode, sowie ein optionales String Argument eingebaut wird.
 
-Zurückgegeben wird bei Erfolg \textit{OK}, sonst \textit{FAIL} (definiert in \ref{smtprelay.h}).
+Zurückgegeben wird bei Erfolg \texttt{OK}, sonst \texttt{FAIL} (definiert in \ref{smtprelay.h}).
 
 \subsection{Funktion check\_addr}\label{fn:check_addr}
 Diese Funktion überprüft eine vom Client angegebene Hostaddresse. 
@@ -237,32 +237,84 @@ Dabei wird einfach geprüft, ob eine mindestens 3 Zeichen lange Zeichenkette, ge
 
 Eine genauere Überprüfung wird auch hier dem Remote Server überlassen, ist aber an dieser Stelle einfach implemetierbar.
 
-\subsection{check\_input}\label{check_input}
+\subsection{check\_input}\label{fn:check_input}
 Diese Funktion testet eine vom Client stammende gelesene Zeile.
 
-Dazu bekommt sie die gelesene Zeile, ein SMTP Kommando, das erwartet wird, ein Trennzeichen, mit dem das Kommando vom restlichem String getrennt ist, eine Funktion, mit der das Argument des Kommandos überprüft wird und eine Addresse, an die dad Argument geschrieben werden soll übergeben.
+Dazu bekommt sie die gelesene Zeile, ein SMTP Kommando, das erwartet wird, ein Trennzeichen, mit dem das Kommando vom restlichem String getrennt ist, eine Funktion, mit der das Argument des Kommandos überprüft wird und eine Addresse, an die das Argument geschrieben werden soll übergeben.
 
-Zuerst wird überprüft, ob das Trennzeichen im String zu finden ist. Ist dies nicht der Fall, so wird \textit{CHECK\_DELIM} zurückgegeben.
+Zuerst wird überprüft, ob das Trennzeichen im String zu finden ist. Ist dies nicht der Fall, so wird \texttt{CHECK\_DELIM} zurückgegeben.
 
-Anschließend wird getestet, ob der gelesene String das erwartete Kommando ist, wenn nicht wird \textit{CHECK\_PREF} zurückgegeben.
+Anschließend wird getestet, ob der gelesene String das erwartete Kommando ist, wenn nicht wird \texttt{CHECK\_PREF} zurückgegeben.
 
-Dann wird geprüft, ob das Tennzeichen ein nicht-Nullterminierungszeichen war. Im Erfolgsfall wird getestet, ob die Länge des Arguments größer 0 ist (sonst wird \textit{CHECK\_ARG} zurückgegeben) und wenn ja, ob die Testfunktion (wenn angegeben) einen positiven Rückgabewert zurückgibt. Ist dies nicht der Fall, wird die Funktion mit \textit{CHECK\_ARG} oder \textit{CHECK\_ARG\_MSG} beendet.
+Dann wird geprüft, ob das Tennzeichen ein nicht-Nullterminierungszeichen war. Im Erfolgsfall wird getestet, ob die Länge des Arguments größer 0 ist (sonst wird \texttt{CHECK\_ARG} zurückgegeben) und wenn ja, ob die Testfunktion (wenn angegeben) einen positiven Rückgabewert zurückgibt. Ist dies nicht der Fall, wird die Funktion mit \texttt{CHECK\_ARG} oder \texttt{CHECK\_ARG\_MSG} beendet.
 
-Wurden alle Tests passiert, so wird das Atgument in einen neuen Speicherbereich geschrieben und \textit{CHECK\_OK} zurückgegeben.
+Wurden alle Tests passiert, so wird das Atgument in einen neuen Speicherbereich geschrieben und \texttt{CHECK\_OK} zurückgegeben.
 
-\subsection{Funktion fetch\_input\_line}
+\subsection{Funktion fetch\_input\_line}\label{fn:fetch_input_line}
+Diese Funktion holt über den Socket eine Zeile vom Client. Als Argumente bekommt sie den Filedescriptor der Socketverbindung, ein SMTP Kommando, das erwartet wird, ein Trennzeichen, mit dem das Kommando vom restlichem String getrennt ist, eine Funktion, mit der das Argument des Kommandos überprüft wird und eine Addresse, an die das Argument geschrieben werden soll übergeben.
+
+Zuerst wird die Zeile vom Socket gelesen und diese mittels \ref{fn:check_input} geprüft, ob es sich um die erwartete Zeile handelt. Ist dies der Fall, so wird \texttt{READ\_OK} zurückgegeben. Schlägt die Überprüfung des Argumentes in \ref{fn:check_input} fehl, so wird ein fehler an den Client geschickt und erneut auf eine Zeile gewartet.
+
+Handelt es sich bei der gelesenen Zeile nicht um die erwartete, so wird (ebenfalls mit \ref{fn:check_input}) geprüft, ob es sich um ein \texttt{RSET}, \texttt{QUIT}, \texttt{NOOP} oder eines der nicht implementierten Kommandos \texttt{VRFY}, \texttt{EXPN} bzw. \texttt{HELP} handelt. Zum schluss wird noch getestet, ob es sich um ein anderes SMTP Kommando kandelt, welches an dieser Stelle nicht erwartet wurde.
+\begin{itemize}
+  \item Bei \texttt{RSET} wird eine Meldung ausgegeben, das erfolgreich zurückgesetzt wurde und \texttt{READ\_RESET} zurückgegeben. 
+  \item Bei \texttt{QUIT} wird eine Abschiedsnachricht an den Client gesandt und \texttt{READ\_QUIT} zurückgegeben. 
+  \item Bei \texttt{NOOP} Wird eine kurze Nachricht an den Client gesandt und auf die nächste Zeile gewartet.
+  \item Bei einem der unimplementierten Kommandos wird eine Meldung an den Client geschickt, dass dieses Kommando nicht implementiert ist und auf die nächste Zeile gewartet.
+  \item Bei einem unerwartetem Kommando wird ausgegeben, dass es sich um eine  falsche Kommandosequenz handelt und auf die nächste Zeile gewartet.
+  \item Wenn die Eingabe keinem Kommando zugeordnet werden konnte wird eine Fehlermeldung an den Client geschickt, dass die Syntax falsch sei und auf die nächste Zeile gewartet. 
+\end{itemize}
+
+Bei Lesefehlern auf dem Socket wird \texttt{READ\_ERR} zurückgegeben und ein Fehler ausgegeben.
+
+\subsection{Funktion read\_data}\label{fn:read_data}
+Diese Funktion dient dazu, den Datenblock einer Mail zeilenweise zu lesen und daraus eine Liste vom Typ \texttt{data\_line\_t} zu generieren.
+
+Sie überprüft die Eingabe auch auf das Terminierungszeichen \texttt{<CR><LF>.<CR><LF>} und beendet an dieser Stelle den Datenblock.
+
+
+\subsection{Funktion session\_sequence}\label{fn:session_sequence}
+Diese Funktion dient dazu, eine Mail Sequenz (\texttt{MAIL FROM} $\rightarrow$ \texttt{RCPT TO} $\rightarrow$ \texttt{DATA} $\rightarrow$ Daten $\rightarrow$ \texttt{<CR><LF>.<CR><LF>}) anzuarbeiten.
+
+Dazu wird mit \ref{fn:fetch_input_line} auf das entsprechende Kommando bzw. mit \ref{fn:read_data}auf Daten gewartet und jeweils eine Statusnachricht zurückgegeben.
+
+Bei Fehlern wird mit \texttt{SESSION\_ABORT} abgebrochen. Ein empfangenes \texttt{QUIT} lässt die Funktion ein \texttt{SESSION\_QUIT} und \texttt{RSET} ein \texttt{SESSION\_RESET} zurückgeben. Bei erfolgreich abgearbeiteter Mail Sequenz wird \texttt{SESSION\_SEND} zurückgegeben.
+
+\subsection{Funktion start\_session}\label{fn:start_session}
+Dies ist die Funktion, die eine Mailsession für einen Client startet. Sie wird dabei vin \ref{fn:process_client} aus dem Modul \ref{mod:connection} aufgerufen.
+
+Sie begrüßt den Client, wartet auf sein \texttt{HELO}, dtartet mit \ref{fn:session_sequence} die Mail Sequenzen, übernimmt die Behandlung der Rückgabewerte (rücksetzten, beenden oder abbrechen der Verbindung) und schickt mittels \ref{fn:forward_mail} die Mail schließlich an den remote Server.
 
 
 
+\section{Modul sender}\label{mod:sender}
+\subsection{Beschreibung}
+Das Modul sender definiert alle Funktionen zur Kommunikation mit dem Remoteserver.
 
+Dazu gehört das Senden der Kommandos, das auswerten der Replys sowie das mittschreiben eines Protokolls in form einer Liste vom Typ \texttt{data\_list\_t}, welches dem Client dann in dem abschließendem Reply ausgegeben wird.
 
+Die Quellen sind in den Listings \ref{sender.c} und \ref{sender.h} aufgeführt.
 
+\subsection{Funktion new\_proto\_entry}\label{new_proto_entry}
+Diese Funktion generiert aus der übergebenen Zeichenkette ein neues Element vom Typ \texttt{data\_list\_t} für das Protokoll.
 
+\subsection{Funktion wind\_proto}\label{wind_proto}
+Diese Funktion bekommt einen Pointer vom Typ \texttt{data\_line\_t}, welcher auf einen beliebigen Protokolleintrag zeigt und gibt einen Pointer vom gleichem Typ zurück, der auf das letzte Element des Protokolls zeigt.
 
+\subsection{read\_remote}\label{read_remote}
+Dies ist eine Wrapperfunktion für \texttt{read}, die zusätzlich die Fehlerausgabe und das mittscreiben des Protokolls übernimmt.
 
+\subsection{write\_remote}\label{write_remote}
+Dies ist eine Wrapperfunktion für \texttt{write}, die zusätzlich die Fehlerausgabe und das mittscreiben des Protokolls übernimmt.
 
+\subsection{free\_protocol}\label{free_protocol}
+Die Funktion \texttt{free\_protocol} bekommt den Pointer auf das Protokoll übergeben und gibt dessen Speicher Eintrag für Eintrag wieder frei.
 
-%TODO QuitConn ist das nächste
+\subsection{extract\_status}\label{extract_status}
+Diese Funktion extrahiert aus einem, vom Remoteserver, empfangenem Sting den Replycode und gibt ihn als \texttt{int} zurück.
+
+\subsection{try\_command}\label{try_command}
+
 
 
 
