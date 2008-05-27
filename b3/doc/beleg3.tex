@@ -33,76 +33,76 @@
 \section{Aufgabe}
 Entwickeln Sie, in C, C++ (oder Perl), einen "`benutzerfreundlichen"' und "`robusten"' SMTP-Server.
 
-Der Server soll den Clients "{u}ber eine Socketverbindung (freier Port) die SMTP-Kommandos in einer einfachen, verst"{a}ndlichen Form bereitstellen/anfordern, die Eingaben pr"{u}fen, zusammenstellen und zum Senden der Mail an einen SMTP-Server (z.B. mail.informatik.htw-dresden.de, Postfix) schicken. 
+Der Server soll den Clients über eine Socketverbindung (freier Port) die SMTP-Kommandos in einer einfachen, verständlichen Form bereitstellen/anfordern, die Eingaben prüfen, zusammenstellen und zum Senden der Mail an einen SMTP-Server (z.B. mail.informatik.htw-dresden.de, Postfix) schicken. 
 
-Dazu ist ebenfalls eine eigene Socketverbindung zu nutzen, die Nutzung von Kommandos wie mail oder sendmail ist nicht zul"{a}ssig. Dies ist auch nicht m"{o}glich, da der Client, im Sinne der Nutzerfreundlichkeit, eine Sendequittung (zum Test ev. gesamtes Protokoll), erhalten soll. Ob die Kommandos als ein gesamter String oder einzeln gesendet werden, ist freigestellt.
+Dazu ist ebenfalls eine eigene Socketverbindung zu nutzen, die Nutzung von Kommandos wie mail oder sendmail ist nicht zulässig. Dies ist auch nicht möglich, da der Client, im Sinne der Nutzerfreundlichkeit, eine Sendequittung (zum Test ev. gesamtes Protokoll), erhalten soll. Ob die Kommandos als ein gesamter String oder einzeln gesendet werden, ist freigestellt.
 
 Als Client kann telnet genutzt werden.
 
-Der Server soll gleichzeitig mit mehreren Clients arbeiten k"{o}nnen, daf"{u}r sind Threads zu nutzen.
+Der Server soll gleichzeitig mit mehreren Clients arbeiten können, dafür sind Threads zu nutzen.
 
 \section{Herangehensweise}
-Die Aufgabenstellung beschreibt ein simples SMTP Relay, welches E-Mails per SMTP annimmt und einfach weiterleitet. Das macht es n"{o}tig, sowohl die Grundfunktionalit"{a}ten eines SMTP Servers(Annahme), als auch die eines Clients (Forward) zu implementieren.
+Die Aufgabenstellung beschreibt ein simples SMTP Relay, welches E-Mails per SMTP annimmt und einfach weiterleitet. Das macht es nötig, sowohl die Grundfunktionalitäten eines SMTP Servers(Annahme), als auch die eines Clients (Forward) zu implementieren.
 
 Bei der weiteren Analyse der Aufgabe wurde festgestellt, das diese bei der Implementierung in 4 Module aufgeteilt werden kann:
 \begin{description}
   \item[smtprelay]
-    Dies beherbergt die \texttt{main} Funktion, k"{u}mmert sich um das parsen der Kommandozeilenoptionen, inkl. nachschlagen der Hostnamen. Zudem ist es f"{u}r die Fehlerausgabe verantwortlich. (Listing \ref{smtprelay.c}, \ref{smtprelay.h}) 
+    Dies beherbergt die \texttt{main} Funktion, kümmert sich um das parsen der Kommandozeilenoptionen, inkl. nachschlagen der Hostnamen. Zudem ist es für die Fehlerausgabe verantwortlich. (Listing \ref{smtprelay.c}, \ref{smtprelay.h}) 
   \item[connection] 
-    Dies ist f"{u}r die komplette Verbindungsverwaltung inkl. der Erzeugung neuer Client Threads zust"{a}ndig (Listing \ref{connection.c}, \ref{connection.h})
+    Dies ist für die komplette Verbindungsverwaltung inkl. der Erzeugung neuer Client Threads zuständig (Listing \ref{connection.c}, \ref{connection.h})
   \item[session] 
     Dieses Modul implementiert eine Client-Session. Es beherbergt den kompletten Code zur Kommunikation mit einem Client. (Listing \ref{session.c}, \ref{session.h})
   \item[sender] 
-    Das sender Modul ist f"{u}r die Kommunikation mit dem Remoteserver zust"{a}ndig, an welchen die E-Mails weitergeleitet werden. (Listing \ref{sender.c}, \ref{sender.h})
+    Das sender Modul ist für die Kommunikation mit dem Remoteserver zuständig, an welchen die E-Mails weitergeleitet werden. (Listing \ref{sender.c}, \ref{sender.h})
 \end{description}
 
-Das Ziel war, ein einzelnes Binary zu schaffen, welches mittels Kommandozeilen-Optionen konfigurierbar ist und die komplette, in der Aufgabenstellung geforderte, Funktionalit"{a}t abdekt.
+Das Ziel war, ein einzelnes Binary zu schaffen, welches mittels Kommandozeilen-Optionen konfigurierbar ist und die komplette, in der Aufgabenstellung geforderte, Funktionalität abdekt.
 
 \section{Build}\label{build}
 Zu dem entstandenen Programm existiert ein Makefile (Listing \ref{Makefile}), welches vier wichtige Targets kennt:
 \begin{description}
-  \item[binary] Baut das normale Programm, hier sind die Ausgaben w"{a}hrend der Laufzeit auf kritische Fehler reduziert. 
-  \item[debug] Baut eine debug Version des Programmes, welche w"{a}hernd der Laufzeit besonders viele Informationen ausgeben kann .
+  \item[binary] Baut das normale Programm, hier sind die Ausgaben während der Laufzeit auf kritische Fehler reduziert. 
+  \item[debug] Baut eine debug Version des Programmes, welche wähernd der Laufzeit besonders viele Informationen ausgeben kann .
   \item[all] Baut sowohl die debug Version des Programms, als auch die normale, nicht-debug Version.
-  \item[clean] L"{o}scht alle Object-Dateien und die erzeugten Binarys. 
+  \item[clean] Löscht alle Object-Dateien und die erzeugten Binarys. 
 \end{description}
-Das zu erstellende Target kann mittels \texttt{make <target>} erzeugt werden. Wird hinter \texttt{make} kein Target angegeben, so wird \texttt{make all} ausgef"{u}hrt.
+Das zu erstellende Target kann mittels \texttt{make <target>} erzeugt werden. Wird hinter \texttt{make} kein Target angegeben, so wird \texttt{make all} ausgeführt.
 
 
 
 \chapter{Nutzung}
 \section{Server}
-Der Server ist ein einfaches Programm, welchen auf der Kommandozeile ausgef"{u}hrt werden kann.
+Der Server ist ein einfaches Programm, welchen auf der Kommandozeile ausgeführt werden kann.
 
-Er wird komplett "{u}ber die Kommandozeile konfiguriert und kennt dabei folgende Optionen:
+Er wird komplett über die Kommandozeile konfiguriert und kennt dabei folgende Optionen:
 \begin{description}
-  \item[-q] Schaltet in den quiet Mode, in welchem die Fehlerausgaben ausgeschaltet sind.
-  \item[-v] Schaltet den verbose Mode ein, in welchem besonders viele Informationen ausgegeben werden. Diese Option ist jedoch nur in der debug Version vorhanden (siehe \ref{build})
-  \item[-a <bind\_address>] Mit diesem Schalter wird die Adresse angegeben, an die der Server gebunden werden soll. Um die standartm"{a}ßig eingesttelle Adresse zu erfahren f"{u}hren Sie bitte das Programm mit dem Schalter \texttt{-h} aus. 
-  \item[-p <bind\_port>] Mit diesem Schalter geben Sie den Port an, an den der Server gebunden werden soll. Auch hier wird der Standardwert durch den Schalter \texttt{-h} ausgegeben.
-  \item[-d <remote\_address>] Hiermit kann die Adresse des Remoteservers, an den alle eingehenden E-Mails weitergeleitet werden, angegeben werden. Der Standartwert wird mit dem Schalter \texttt{-h} ausgegeben.
-  \item[-r <remote\_port>] Dieser Schalter dient zur Eingabe des Remoteports, also des Ports, an dem der Remoteserver lauscht. Standardwerte sind mit \texttt{-h} zu erfragen.
-  \item[-h] Gibt einen Hilfetext mit allen Standartwerten aus. 
+  \item[\texttt\bfseries{-q}] Schaltet in den quiet Mode, in welchem die Fehlerausgaben ausgeschaltet sind.
+  \item[\texttt\bfseries{-v}] Schaltet den verbose Mode ein, in welchem besonders viele Informationen ausgegeben werden. Diese Option ist jedoch nur in der debug Version vorhanden (siehe \ref{build})
+  \item[\texttt\bfseries{-a <bind\_address>}] Mit diesem Schalter wird die Adresse angegeben, an die der Server gebunden werden soll. Um die standartmäßig eingesttelle Adresse zu erfahren führen Sie bitte das Programm mit dem Schalter \texttt{-h} aus. 
+  \item[\texttt\bfseries{-p <bind\_port>}] Mit diesem Schalter geben Sie den Port an, an den der Server gebunden werden soll. Auch hier wird der Standardwert durch den Schalter \texttt{-h} ausgegeben.
+  \item[\texttt\bfseries{-d <remote\_address>}] Hiermit kann die Adresse des Remoteservers, an den alle eingehenden E-Mails weitergeleitet werden, angegeben werden. Der Standartwert wird mit dem Schalter \texttt{-h} ausgegeben.
+  \item[\texttt\bfseries{-r <remote\_port>}] Dieser Schalter dient zur Eingabe des Remoteports, also des Ports, an dem der Remoteserver lauscht. Standardwerte sind mit \texttt{-h} zu erfragen.
+  \item[\texttt\bfseries{-h}] Gibt einen Hilfetext mit allen Standartwerten aus. 
 \end{description}
-Adressen die <bind\_address> k"{o}nnen dabei sowohl als IP Adresse, als auch als Hostname angegeben werden.
+Adressen die \texttt{<bind\_address>} können dabei sowohl als IP Adresse, als auch als Hostname angegeben werden.
 
-Wurde das Programm korrekt ausgef"{u}hrt, so lauscht es auf dem angegebenem Port und wartet auf Clients.
+Wurde das Programm korrekt ausgeführt, so lauscht es auf dem angegebenem Port und wartet auf Clients.
 
 Der Remoteserver muss ein SMTP Server sein, welcher Mindestens die Kommandos \texttt{HELO}, \texttt{MAIL FROM}, \texttt{RCPT TO}, \texttt{DATA} und \texttt{QUIT} versteht. Der Datenblock wiederum muss mit \texttt{<CR><LF>.<CR><LF>} abschließbar sein.
 
 \section{Client}
 Der Client muss die wichtigsten SMTP Kommandos beherrschen. Implementiert sind:
 \begin{description}
-  \item[HELO <client\_name>] Anmeldung des Clients.
-  \item[MAIL FROM:<mail\_addr>] Angabe des Absenders.
-  \item[RCPT TO:<mail\_addr>] Angabe des Empf"{a}ngers.
-  \item[DATA] Beginn des Datenblocks (Ende mit \texttt{<CR><LF>.<CR><LF>}).
-  \item[QUIT] Beenden der Verbindung.
-  \item[RSET] R"{u}cksetzten der Verbindung bis nach \texttt{HELO}. 
-  \item[NOOP] Gibt immer eine 250 zur"{u}ck (zum Bsp. zum Testen der Verbindung).
+  \item[\texttt\bfseries{HELO <client\_name>}] Anmeldung des Clients.
+  \item[\texttt\bfseries{MAIL FROM:<mail\_addr>}] Angabe des Absenders.
+  \item[\texttt\bfseries{RCPT TO:<mail\_addr>}] Angabe des Empfängers.
+  \item[\texttt\bfseries{DATA}] Beginn des Datenblocks (Ende mit \texttt{<CR><LF>.<CR><LF>}).
+  \item[\texttt\bfseries{QUIT}] Beenden der Verbindung.
+  \item[\texttt\bfseries{RSET}] Rücksetzten der Verbindung bis nach \texttt{HELO}. 
+  \item[\texttt\bfseries{NOOP}] Gibt immer eine 250 zurück (zum Bsp. zum Testen der Verbindung).
 \end{description}
 
-Dabei muss eine Normale Sitzung immer nach dem SMTP-Protokoll (siehe \ref{rfc2821}) ablaufen. Das heißt, das zuerst immer ein \texttt{HELO} kommen muss, dann beliebig viele Mailbl"{o}cke, wobei ein Mailblock aus \texttt{HELO}$\rightarrow$\texttt{RCPT TO}$\rightarrow$\texttt{DATA}$\rightarrow$<Datenblock mit abschließendem \texttt{<CR><LF>.<CR><LF>}> besteht, und abschließend ein \texttt{QUIT}.
+Dabei muss eine Normale Sitzung immer nach dem SMTP-Protokoll (siehe \ref{rfc2821}) ablaufen. Das heißt, das zuerst immer ein \texttt{HELO} kommen muss, dann beliebig viele Mailblöcke, wobei ein Mailblock aus \texttt{HELO}$\rightarrow$\texttt{RCPT TO}$\rightarrow$\texttt{DATA}$\rightarrow$Datenblock mit abschließendem \texttt{<CR><LF>.<CR><LF>} besteht, und abschließend ein \texttt{QUIT}.
 
 Die Replycodes des Servers sind entsprechend dem SMTP Standard (siehe \ref{rfc2821}) implementiert.
 
@@ -367,14 +367,13 @@ Der Replycode wird dabei abhängig vom Versendeerfolg ausgegeben.
       numberstyle=\tiny, 
       frame=single, 
       caption={C-Code} 
-      backgroundcolor=\color{Beige}, 
       % basicstyle=\small\ttfamily\bfseries, % print whole listing small 
       basicstyle=\scriptsize\ttfamily\bfseries, % print whole listing small 
       linewidth=\linewidth,       % Zeilenbreite 
       breaklines=true,
       showstringspaces=false,
       breakatwhitespace=true, %Umbruch an Leerzeichen 
-      captionpos=b 
+      captionpos=t 
   }
 
 
