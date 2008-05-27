@@ -295,25 +295,25 @@ Dazu gehört das Senden der Kommandos, das auswerten der Replys sowie das mittsc
 
 Die Quellen sind in den Listings \ref{sender.c} und \ref{sender.h} aufgeführt.
 
-\subsection{Funktion new\_proto\_entry}\label{new_proto_entry}
+\subsection{Funktion new\_proto\_entry}\label{fn:new_proto_entry}
 Diese Funktion generiert aus der übergebenen Zeichenkette ein neues Element vom Typ \texttt{data\_list\_t} für das Protokoll.
 
-\subsection{Funktion wind\_proto}\label{wind_proto}
+\subsection{Funktion wind\_proto}\label{fn:wind_proto}
 Diese Funktion bekommt einen Pointer vom Typ \texttt{data\_line\_t}, welcher auf einen beliebigen Protokolleintrag zeigt und gibt einen Pointer vom gleichem Typ zurück, der auf das letzte Element des Protokolls zeigt.
 
-\subsection{Funktion read\_remote}\label{read_remote}
+\subsection{Funktion read\_remote}\label{fn:read_remote}
 Dies ist eine Wrapperfunktion für \texttt{read}, die zusätzlich die Fehlerausgabe und das mittscreiben des Protokolls übernimmt.
 
-\subsection{Funktion write\_remote}\label{write_remote}
+\subsection{Funktion write\_remote}\label{fn:write_remote}
 Dies ist eine Wrapperfunktion für \texttt{write}, die zusätzlich die Fehlerausgabe und das mittscreiben des Protokolls übernimmt.
 
-\subsection{Funktion free\_protocol}\label{free_protocol}
+\subsection{Funktion free\_protocol}\label{fn:free_protocol}
 Die Funktion \texttt{free\_protocol} bekommt den Pointer auf das Protokoll übergeben und gibt dessen Speicher Eintrag für Eintrag wieder frei.
 
-\subsection{Funktion extract\_status}\label{extract_status}
+\subsection{Funktion extract\_status}\label{fn:extract_status}
 Diese Funktion extrahiert aus einem, vom Remoteserver, empfangenem Sting den Replycode und gibt ihn als \texttt{int} zurück.
 
-\subsection{Funktion try\_command}\label{try_command}
+\subsection{Funktion try\_command}\label{fn:try_command}
 Diese Funktion sendet ein SMTP Kommando mittels \ref{write_remote} an den Remoteserver und wartet die Antwort ab: 
 \begin{itemize}
   \item Ist die ampfangene Antwort wie erwartet, so wird \texttt{COMMAND\_OK} zurückgegeben. 
@@ -323,8 +323,19 @@ Diese Funktion sendet ein SMTP Kommando mittels \ref{write_remote} an den Remote
 Zudem werden Lese und schreibfehler abgefangen.
 
 
-\subsection{Funktion send\_mail}\label{send_mail}
+\subsection{Funktion send\_mail}\label{fn:send_mail}
 Diese Funktion schickt die im SMTP Protokoll (siehe \ref{rfc2821}) definierte Kommandosequenz (\texttt{HELO} $\rightarrow$ \texttt{MAIL FROM} $\rightarrow$ \texttt{RCPT TO} $\rightarrow$ \texttt{DATA} $\rightarrow$ Daten $\rightarrow$ \texttt{<CR><LF>.<CR><LF>} $\rightarrow$ \texttt{QUIT}) zum versenden der E Mail an den Remoteserver.
+
+Dazu benutzt sie vor allem die Funktionen \ref{fn:try_command} und \ref{fn:write_remote}.
+
+Nach erfolgreichem Versand wird OK zurückgegeben, ansonsten FAIL (definiert in \ref{smtprelay.h})
+
+\subsection{forward\_mail}\label{forward_mail}
+Diese Funktion startet das verschicken der E Mail an den Remoteserver. Aufgerufen wird sie von \ref{fn:start_session} aus dem Modul \ref{mod:session}.
+
+Sie lässt zuerst von \ref{fn:create_remote_conn} aus dem Modul \ref{mod:connection} eine Verbindung zum Remoteserver aufbauen, startet dann durch einen Aufruf von \ref{fn:send_mail} das senden der Mail und lässt anschließend mit \ref{fn:put_forward_proto} das Protokoll ausgeben. 
+
+Der Replycode wird dabei abhängig vom Versendeerfolg ausgegeben.
 
 
 

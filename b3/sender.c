@@ -213,11 +213,11 @@ int send_mail(int client_fd, int remote_fd, mail_data_t *data, data_line_t **pro
 }
 
 int forward_mail(int fd, mail_data_t* data){
-  int remote_fd;
+  int remote_fd, ret;
   data_line_t *protocol;
 
   if((remote_fd = create_remote_conn(app->remote_addr, app->remote_port)) > 0){ 
-    if(send_mail(fd, remote_fd, data, &protocol) == OK){
+    if((ret = send_mail(fd, remote_fd, data, &protocol)) == OK){
       put_forward_proto(fd, 250, protocol);
     } else {
       put_forward_proto(fd, 451, protocol);
@@ -225,7 +225,7 @@ int forward_mail(int fd, mail_data_t* data){
 
     quit_remote_conn(remote_fd);
     free_protocol(protocol);
-    return OK;
+    return (ret == OK ? OK : FAIL);
   } else {
     protocol = new_proto_entry("Could not connect to Remote Server");
     put_forward_proto(fd, 451, protocol);
