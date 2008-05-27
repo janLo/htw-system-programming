@@ -111,7 +111,7 @@ Die Replycodes des Servers sind entsprechend dem SMTP Standard (siehe \ref{rfc28
 \subsection{Beschreibung}
 Hier sind alle Funktionen definiert, die vor der Öffnung des Sockets aufzurufen sind. Außerdem ist die die Fehlerausgabe, sowie die debug Ausgabe (im Header) definiert. 
 
-Die Debugausgabe ist durch mehrere Makros realisiert, welche nur dann einen Effekt haben, wenn die debug Variante des Programmes gebaut wird (siehe \ref{build}. Die Makros haben alle unterschiedliche Argumente, je nachdem was ausgegeben werden soll. Zudem sind sie noch unterteilt in normale und DEBUG\_CLNT Makros, welche zusätzlich noch die aktuelle Threadid ausgeben.
+Die Debugausgabe ist durch mehrere Makros realisiert, welche nur dann einen Effekt haben, wenn die debug Variante des Programmes gebaut wird (siehe \ref{build}). Die Makros haben alle unterschiedliche Argumente, je nachdem was ausgegeben werden soll. Zudem sind sie noch unterteilt in normale und DEBUG\_CLNT Makros, welche zusätzlich noch die aktuelle Threadid ausgeben.
 
 Die Quellen sind in den Listings \ref{smtprelay.c} und \ref{smtprelay.h} aufgeführt.
 
@@ -159,27 +159,108 @@ Das Modul connection beherbergt alle Funktionen, die sich mit den Socketverbindu
 
 Zudem werden hier die neuen Threads für die Clients erzeugt, da jeder Client seinen eigenen Thread bekommt. Auch der Interupt handler ist hier definiert, da in diesem die Socketverbindung des Servers beendet werden muss.
 
+Die Quellen sind in den Listings \ref{connection.c} und \ref{connection.h} aufgeführt.
+
+
+
+
 \subsection{Funktion create\_socket}\label{fn:create_socket}
 Dies erzeugt einen neuen Inet Socket, welcher hier auch gleich an die richtige Addresse gebunden wird.
 
-\subsection{process\_client}\label{fn:process_client}
+\subsection{Funktion process\_client}\label{fn:process_client}
 Dies ist die erste Funktion, die im neuen Thread aufgerufen wird.
 
 Sie startet mittels \ref{fn:start_session} die Client Session, und schließt den Client Socket wenn die Session beendet wurde.
 
-\subsection{wait\_connect}\label{fn:wait_connect}
+\subsection{Funktion wait\_connect}\label{fn:wait_connect}
 Hier wird auf Client Verbindungen gewartet. 
 
 Kommt solch eine zustande, so wird ein neuer Thread gestartet und in diesem die Funktion \ref{fn:process_client} zum starten einer neuen Sitzung aufgerufen.
 
 Der neue Thread wird gleich mittels \textit{pthread\_detach} detacht, um Speicherlöchern durch nicht aufgeräumte Threads vorzubäugen.
 
-\subsection{create\_conn}\label{create_conn}
+\subsection{Funktion create\_conn}\label{fn:create_conn}
 Diese Funktion dient zum öffnen des Socket. Sie bekommt Hostname und Port zum binden übergeben und generiert daraus eine \textit{sockaddr\_in}.
 
 Dann wird der Socket mit \ref{fn:create_socket} geöffnet und mit \ref{fn:wait_connect} auf Clients gewartet.
 
 Am Ende wird mit \ref{fn:quit_conn} die Verbindung beendet (sollte nie passieren, da das Warten nur durch ein Signal oder einen Fehler unterbrochen wird).
+
+
+\subsection{Funktion quit\_conn}\label{fn:quit_conn}
+Diese Funktion schließt die als Filedescriptor übergebene Socketverbindung.
+
+
+\subsection{Funktion create\_remote\_conn}\label{fn:create_remote_conn}
+Diese Funtion baut eine Verbindung zu dem Remoteserver auf, an den die Mails weitergeleitet werden sollen. Zurückgegeben wird der Filedescriptor des Sokets, \textit{-1} sonst.
+
+Die Verbindungsdaten (IP Addresse, Portnummer) werden als Argumente an die Funktion übergeben.
+
+\subsection{Funktion quit\_remote\_conn}\label{fn:quit_remote_conn}
+Diese Funktion schließt die als Filedescriptor übergebene Socketverbindung.
+
+\subsection{Funktion sig\_abrt\_conn}\label{fn:sig_abrt_conn}
+Dies ist der Signal Handler, der aufgerufen wird, wenn eines der Signale \textit{SIGABRT}, \textit{SIGTERM}, \textit{SIGQUIT} oder \textit{SIGINT} eintifft. 
+
+Sie schließt den Server Socket und beendet das Programm.
+
+
+
+
+
+\section{Modul session}\label{mod:session}
+\subsection{Beschreibung}
+Im Modul session sind die Funktionen definiert, die zur Kommunikation mit dem Client nötig sind. 
+
+Dazu gehört die Ein- und Ausgabe auf dem Client Socket, die Abarbeitung der im SMTP Protokoll definierten Kommandosequenzen sowie das Testen der Eingaben des Clients.
+
+Die Quellen sind in den Listings \ref{session.c} und \ref{session.h} aufgeführt.
+
+\subsection{Funktion write\_client\_msg}\label{fn:write_client_msg}
+Diese Funktion schreibt eine Ausgabe auf den Socket. Die Nachricht ist ein im Header des Modules session \ref{session.h} definierter Formatstring (\textit{MSG\_*}), in den der als Argument übergebene Replycode, sowie ein optionales String Argument eingebaut wird.
+
+Zurückgegeben wird bei Erfolg \textit{OK}, sonst \textit{FAIL} (definiert in \ref{smtprelay.h}).
+
+\subsection{Funktion check\_addr}\label{fn:check_addr}
+Diese Funktion überprüft eine vom Client angegebene Hostaddresse. 
+
+Da dieses Programm lediglich ein Relay sein soll, welches keine Mails ausliefern soll ist es nicht nötig, des Hostnamen auf Existenz zu prüfen. Es wird lediglich geprüft, ob min. zwei Zeichen eingegeben wurden. 
+
+Die genauere Überprüfung wird dann dem Remote Server überlassen.
+
+Ist zu einem späterem Zeitpunkt eine komplexere Prüfung nörig, so ist dies an dieser Stelle sehr einfach Implementierbar.
+
+\subsection{Funktion check\_mail}\label{fn:check_mail}
+Diese Funktion ist, analog zu \ref{fn:check_addr} für das Testen einer eingegebenen Mailaddresse zuständig. 
+
+Dabei wird einfach geprüft, ob eine mindestens 3 Zeichen lange Zeichenkette, gefolgt von einem @ und einem Hostnamen, welcher die Überprüfung in Funktion \ref{fn:check_addr} besteht, eingegeben wurde.
+
+Eine genauere Überprüfung wird auch hier dem Remote Server überlassen, ist aber an dieser Stelle einfach implemetierbar.
+
+\subsection{check\_input}\label{check_input}
+Diese Funktion testet eine vom Client stammende gelesene Zeile.
+
+Dazu bekommt sie die gelesene Zeile, ein SMTP Kommando, das erwartet wird, ein Trennzeichen, mit dem das Kommando vom restlichem String getrennt ist, eine Funktion, mit der das Argument des Kommandos überprüft wird und eine Addresse, an die dad Argument geschrieben werden soll übergeben.
+
+Zuerst wird überprüft, ob das Trennzeichen im String zu finden ist. Ist dies nicht der Fall, so wird \textit{CHECK\_DELIM} zurückgegeben.
+
+Anschließend wird getestet, ob der gelesene String das erwartete Kommando ist, wenn nicht wird \textit{CHECK\_PREF} zurückgegeben.
+
+Dann wird geprüft, ob das Tennzeichen ein nicht-Nullterminierungszeichen war. Im Erfolgsfall wird getestet, ob die Länge des Arguments größer 0 ist (sonst wird \textit{CHECK\_ARG} zurückgegeben) und wenn ja, ob die Testfunktion (wenn angegeben) einen positiven Rückgabewert zurückgibt. Ist dies nicht der Fall, wird die Funktion mit \textit{CHECK\_ARG} oder \textit{CHECK\_ARG\_MSG} beendet.
+
+Wurden alle Tests passiert, so wird das Atgument in einen neuen Speicherbereich geschrieben und \textit{CHECK\_OK} zurückgegeben.
+
+\subsection{Funktion fetch\_input\_line}
+
+
+
+
+
+
+
+
+
+
 
 %TODO QuitConn ist das nächste
 
@@ -191,27 +272,28 @@ Am Ende wird mit \ref{fn:quit_conn} die Verbindung beendet (sollte nie passieren
   \chapter{Anhang}
   \section{Quellen}
 
- \lstset{language=[ANSI]C, 
-     keywordstyle=\color{blue!80!black!100}, 
-     identifierstyle=, 
-     commentstyle=\color{green!50!black!100}, 
-     stringstyle=\ttfamily, 
-     breaklines=true, 
-     columns=fixed,
-     numbers=left, 
-     framexleftmargin=20pt,
-     numbersep=9pt,
-     numberstyle=\tiny, 
-     frame=single, 
-     caption={C-Code} 
-        backgroundcolor=\color{Beige}, 
-      basicstyle=\small\ttfamily\bfseries, % print whole listing small 
+  \lstset{language=[ANSI]C, 
+      keywordstyle=\color{blue!80!black!100}, 
+      identifierstyle=, 
+      commentstyle=\color{green!50!black!100}, 
+      stringstyle=\ttfamily, 
+      breaklines=true, 
+      columns=fixed,
+      numbers=left, 
+      framexleftmargin=20pt,
+      numbersep=9pt,
+      numberstyle=\tiny, 
+      frame=single, 
+      caption={C-Code} 
+      backgroundcolor=\color{Beige}, 
+      % basicstyle=\small\ttfamily\bfseries, % print whole listing small 
+      basicstyle=\scriptsize\ttfamily\bfseries, % print whole listing small 
       linewidth=\linewidth,       % Zeilenbreite 
-	breaklines=true,
-    showstringspaces=false,
+      breaklines=true,
+      showstringspaces=false,
       breakatwhitespace=true, %Umbruch an Leerzeichen 
       captionpos=b 
- }
+  }
 
 
   \subsection{smtprelay}
@@ -238,12 +320,12 @@ Am Ende wird mit \ref{fn:quit_conn} die Verbindung beendet (sollte nie passieren
   \lstinputlisting[caption=Makefile,label=Makefile]{../Makefile}
 
   \section{SMTP Standard}
-  \lstset{numbers=none}
-  \lstset{formfeed=\pagebreak}
-  \lstset{showstringspaces=false}
-
-  \lstset{language=[plain]TeX}
-  \lstinputlisting[caption=SMTP Standard: RFC 2821,label=rfc2821]{rfc2821.txt}
+  \lstset{numbers=none,
+      basicstyle=\scriptsize\ttfamily\bfseries, % print whole listing small 
+      formfeed=\pagebreak,
+      showstringspaces=false,
+      language=[plain]TeX}
+%  \lstinputlisting[caption=SMTP Standard: RFC 2821,label=rfc2821]{rfc2821.txt}
 
 
 \end{appendix}
