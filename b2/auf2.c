@@ -1,3 +1,12 @@
+/* Systemprogrammierung
+ * Beleg 2, Aufgabe 2a/2b
+ * "Beenden eines Programmes nach programmname mit
+ * a) ps und
+ * b) proc"
+ *
+ * von: Jan Losinski
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

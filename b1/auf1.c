@@ -1,9 +1,18 @@
+/* Systemprogrammierung
+ * Beleg 1, Aufgabe 1
+ * "Ausgabe der Dateigröße einer Datei"
+ *
+ * von: Jan Losinski
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+/* Reads a Filename from the commandline and,
+ * stat() it and print the site in Bytes */
 int main(int argc, char *argv[]){
   int i = 0;
   struct stat s;

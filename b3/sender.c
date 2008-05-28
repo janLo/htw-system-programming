@@ -236,5 +236,6 @@ int forward_mail(int fd, mail_data_t* data){
     protocol = new_proto_entry("Could not connect to Remote Server");
     put_forward_proto(fd, 451, protocol);
     free_protocol(protocol);
+    return FAIL;
   }
 }
