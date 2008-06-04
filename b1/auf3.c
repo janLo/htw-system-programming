@@ -91,6 +91,11 @@ int main(int argc, char *argv[]){
     }
   }
 
+  // Set correct permissions
+  if(fchmod(fd_d, s_s.st_mode) != 0){
+    ext_fail("Ziel", argv[2]);
+  }
+
   // close files
   close(fd_s);
   close(fd_d);

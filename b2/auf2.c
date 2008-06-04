@@ -447,37 +447,70 @@ pinfo_list_t *get_process_info(const char* process_name){
 }
 #endif
 
+inline void print_process(pinfo_list_t * element, int element_num){
+      printf("%d:  %s\n",element_num + 1, element->params);
+      printf("     \\_ PID   = %d\n", element->pid);
+      printf("     \\_ START = %s\n", element->time);
+      printf("     \\_ %%CPU  = %s\n", element->cpu);
+      printf("     \\_ TTY   = %s\n", element->tty);
+      printf("     \\_ USER  = %s\n", element->user);
+      printf("\n");
+}
+
 int select_pid(pinfo_list_t *processes, const char* search){
   int i = 0, sel, j;
   pinfo_list_t * walker = processes;
+  char vrfy;
 
   //print each process details
   if (walker != NULL){
     printf("Gefundene Prozese:\n");
     do {
-      printf("%d:  %s\n",i, walker->params);
-      printf("     \\_ PID   = %d\n", walker->pid);
-      printf("     \\_ START = %s\n", walker->time);
-      printf("     \\_ %%CPU  = %s\n", walker->cpu);
-      printf("     \\_ TTY   = %s\n", walker->tty);
-      printf("     \\_ USER  = %s\n", walker->user);
-      printf("\n");
+      print_process(walker, i);
       i++;
     } while ((walker = walker->next) != NULL);
-    printf("Bitte einen Prozess (0-%d) auswählen: ", i-1);
+
+    printf("Bitte einen Prozess (1-%d) auswählen (beenden mit 0): ", i);
 
     //select process to kill
-    scanf("%d", &sel);
-    if(sel < 0 || sel >= i){
-      printf("%d ist eine ungültige Eingabe, Beende.\n", sel);
-      exit(1);
+    while (1){
+      scanf("%d", &sel);
+      if(sel < 0 || sel > i){
+	printf("%d ist eine ungültige Eingabe, Noch einmal.\n", sel);
+      } else {
+	break;
+      }
     }
+
+    if (sel == 0) {
+      return -1;
+    }
+
+    sel--;
 
     //get process-id to kill
     walker = processes;
     for (j = 0; j < sel; j++){
       walker = walker->next;
     }
+
+    printf("WIRKLICH den folgenden Prozess BEENDEN?\n");
+
+    printf("Bestätigen mit y, Abbrechen mit n: ");
+
+    while (1){
+      scanf("%1s", &vrfy);
+      if(vrfy == 'y' || vrfy == 'n' || vrfy == 'Y' || vrfy == 'N'){
+	if (vrfy == 'N' || vrfy == 'n'){
+          printf("Abgebrochen\n");
+	  return -2;
+	}
+	break;
+      } else {
+	printf("%c ist eine ungültige Eingabe, Noch einmal.\n", vrfy);
+      }
+    }
+
     printf("Beende Prozess Nr. %d\n", walker->pid);
     return walker->pid;
 
@@ -486,7 +519,6 @@ int select_pid(pinfo_list_t *processes, const char* search){
     exit(0);
   }
 }
-
 
 int main(int argc, char *argv[]){
 
@@ -510,13 +542,31 @@ int main(int argc, char *argv[]){
     }
   }
 
-  //get processes
-  list = get_process_info(argv[1]);
+  // ask in loop
+  while (1){
 
-  //select process
-  pid = select_pid(list, argv[1]);
+    //get processes
+    list = get_process_info(argv[1]);
 
-  //kill process
-  kill(pid, signal);
+    //select process
+    pid = select_pid(list, argv[1]);
+
+    // break the loop is requestet
+    if (pid == -1){
+      printf("Beende");
+      break;
+    }
+
+    //kill process
+    if (pid > 0){
+      kill(pid, signal);
+#ifndef USE_PS
+      // time for kernel to remove the /proc dir,
+      // because my program is to fast on _my_ machine.
+      usleep(200);
+#endif
+    }
+  }
+
   exit(0);
 }
