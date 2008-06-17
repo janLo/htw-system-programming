@@ -1,0 +1,9 @@
+Systemprogrammierung
+
+Beleg 1-3
+
+Jan Losinski
+
+Kompilliert werden alle 3 Belege mit "make all",
+die erzeugten Dateien können mit "make clean"
+aufgeräumt werden.

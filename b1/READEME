@@ -1,0 +1,15 @@
+Systemprogrammierung
+
+Beleg 1
+
+Jan Losinski
+
+
+Dieser Beleg hat 3 Aufgaben, die in den C Dateien aufg1.c, 
+aufg2.c und aufg3.c implementiert.
+
+Dem Beleg ist ein Makefile beigelegt, welches dafür sorgt,
+das bei einem "make all" alle 3 Aufgaben kompilliert werden.
+
+Mit "make clean" werden alle ererzeugten Dateien wieder
+aufgeräumt.
