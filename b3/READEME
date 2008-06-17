@@ -1,0 +1,27 @@
+Systemprogrammierung
+
+Beleg 3
+
+Jan Losinski
+
+
+Dierser Beleg beinhaltet ein SMTP Relay.
+
+Die Dokumentation ist als PDF (Dokumentation.pdf) beigelegt.
+
+Um Konform zur Aufgabenstellung zu bleiben wurde das PDF 
+zusätzlich in HTML umgewandelt. Die Dokumentation in HTML
+Form ist unter Dokumentation-HTML/Dokumentation.html zu
+finden.
+
+Dem Beleg ist ein Makefile beigelegt, welches dafür sorgt,
+das bei einem "make all" das Komplette Relay in beiden 
+verfügbaren Versionen (siehe Dokumentation) kompilliert 
+wird.
+
+Mit "make clean" werden alle erzeugten Dateien wieder
+aufgeräumt.
+
+Zusätzlich existieren noch folgende Targets:
+- "make debug" Bauen der Version mit Debug Ausgabe                                                                                                                                                              
+- "make binary" Bauen der Version ohne Debugausgabe
