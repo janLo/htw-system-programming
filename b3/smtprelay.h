@@ -55,6 +55,7 @@ typedef struct app_settings {
   char *remote_port;
   char quiet;
   char debug;
+  char smtp;
 } app_settings_t;
 
 extern app_settings_t *app;

@@ -140,6 +140,9 @@ void write_help(char *appname){
 	 "\t The Address of the destination-Mailserver\n"
 	 "\t (Default: %s)\n"
 	 "\n"
+	 "-s \n"
+	 "\t Switches zo SMTP mode instead ob user friendly Prompt\n"
+	 "\n"
 	 "-r <remote_port>\n"
 	 "\t The Port of the destination Mailserver\n"
 	 "\t (Default: %s)\n"
@@ -165,8 +168,9 @@ int process_opt(int argc, char *argv[]){
   app->remote_port = DEFAULT_REMOTE_PORT;
   app->debug       = 0;
   app->quiet       = 0;
+  app->smtp        = 0;
 
-  while ((c = getopt (argc, argv, "qva:p:d:r:h")) != -1){
+  while ((c = getopt (argc, argv, "qva:p:d:r:hs")) != -1){
     switch (c) {
 #ifdef IS_DEBUG
       case 'v':
@@ -188,6 +192,9 @@ int process_opt(int argc, char *argv[]){
       case 'r':
 	if((app->remote_port = port_opt(optarg, ERR_OPT_REMOTE_PORT)) == NULL)
 	  return FAIL;
+	break;
+      case 's':
+	app->smtp = 1;
 	break;
       case 'q':
 	app->quiet = 1;

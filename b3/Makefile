@@ -2,7 +2,7 @@ LDFLAGS=-lpthread
 CFLAGS=$(DEBUG) -Wall
 LD=gcc 
 BIN_NAME=smtp_relay
-OBJS=smtprelay.o connection.o session.o sender.o
+OBJS=smtprelay.o connection.o session.o sender.o smtp_session.o user_session.o
 
 
 all:
@@ -18,7 +18,7 @@ binary_debug:
 
 smtprelay.o: smtprelay.h connection.h
 
-session.o: session.h smtprelay.h sender.h 
+session.o: session.h smtprelay.h sender.h smtp_session.h user_session.h
 
 sender.o: sender.h connection.h smtprelay.h
 
