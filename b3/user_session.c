@@ -43,7 +43,7 @@ int user_write_client_msg(int fd, int status, const char *msg, char *add){
 }
 
 // Checks if Confirm is OK
-int check_confirm(char *buff){
+int user_check_confirm(char *buff){
   if (strcmp(buff, "send") == 0){
     return ARG_OK;
   }
@@ -124,7 +124,7 @@ int user_ask_client(int fd, const char *question, const char *ok_msg, const char
 
 
 // Clean Mail Data
-void clean_mail_data(mail_data_t* data){
+void user_clean_mail_data(mail_data_t* data){
   data_line_t * walker, *tmp;
 
   if(data != NULL){ 
@@ -193,11 +193,11 @@ int user_start_session(int fd){
     } else {
       if (result == READ_RESET){
 	session = SESSION_RESET;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	continue;
       } else {
 	session = SESSION_ABORT;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	break;
       }
     }
@@ -209,11 +209,11 @@ int user_start_session(int fd){
     } else {
       if (result == READ_RESET){
 	session = SESSION_RESET;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	continue;
       } else {
 	session = SESSION_ABORT;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	break;
       }
     }
@@ -224,7 +224,7 @@ int user_start_session(int fd){
       DEBUG_CLNT("Write Failed, Abort Session");
       ERROR_SYS("Wrie to Client");
       session = SESSION_ABORT;
-      clean_mail_data(data);
+      user_clean_mail_data(data);
       break;
     }
 
@@ -245,7 +245,7 @@ int user_start_session(int fd){
 	DEBUG_CLNT("Write Failed, Abort Session");
 	ERROR_SYS("Write to Client");
 	session = SESSION_ABORT;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	break;
       } 
     } else {
@@ -256,23 +256,23 @@ int user_start_session(int fd){
 	} 
       }
       session = SESSION_ABORT;
-      clean_mail_data(data);
+      user_clean_mail_data(data);
       break;
     }
 
 
     //Really Send?
-    result = user_ask_client(fd, USER_MSG_CONFIRM_ASK, USER_MSG_CONFIRM_OK, USER_MSG_CONFIRM_FAIL, NULL, check_confirm, 0);
+    result = user_ask_client(fd, USER_MSG_CONFIRM_ASK, USER_MSG_CONFIRM_OK, USER_MSG_CONFIRM_FAIL, NULL, user_check_confirm, 0);
     if (result == READ_OK){
       DEBUG_CLNT("Confirm OK");
     } else {
       if (result == READ_RESET){
 	session = SESSION_RESET;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	continue;
       } else {
 	session = SESSION_ABORT;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	break;
       }
     }
@@ -285,7 +285,7 @@ int user_start_session(int fd){
 	DEBUG_CLNT("Write Failed, Abort Session");
 	ERROR_SYS("Wrie to Client");
 	session = SESSION_ABORT;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	break;
       }
     } else {
@@ -293,13 +293,12 @@ int user_start_session(int fd){
 	DEBUG_CLNT("Write Failed, Abort Session");
 	ERROR_SYS("Wrie to Client");
 	session = SESSION_ABORT;
-	clean_mail_data(data);
+	user_clean_mail_data(data);
 	break;
       }
     }
     session = SESSION_RUN;
 
-    //TODO: Forward + Resourcen freen!!!!!
   } // Session Loop end
 
   // Free session resouces
