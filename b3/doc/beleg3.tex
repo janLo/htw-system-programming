@@ -12,7 +12,7 @@ Als Client kann telnet genutzt werden.
 Der Server soll gleichzeitig mit mehreren Clients arbeiten k\"{o}nnen, daf\"{u}r sind Threads zu nutzen.
 
 \navtwo{Herangehensweise}
-Die Aufgabenstellung beschreibt ein simples SMTP Relay, welches E-Mails per SMTP annimmt und einfach weiterleitet. Das macht es n\"{o}tig, sowohl die Grundfunktionalit\"{a}ten eines SMTP Servers(Annahme), als auch die eines Clients (Forward) zu implementieren.
+Die Aufgabenstellung beschreibt ein simples SMTP Relay, welches E-Mails per SMTP oder mittels eines nutzerfreundlichem Interface annimmt und einfach weiterleitet. Das macht es n\"{o}tig, sowohl die Grundfunktionalit\"{a}ten eines SMTP Servers(Annahme), als auch die eines Clients (Forward) zu implementieren. Zus\"{a}tzlich muss noch ein Interface erarbeitet werden.
 
 Bei der weiteren Analyse der Aufgabe wurde festgestellt, das diese bei der Implementierung in 4 Module aufgeteilt werden kann:
 \begin{description}
@@ -21,7 +21,7 @@ Bei der weiteren Analyse der Aufgabe wurde festgestellt, das diese bei der Imple
   \item[connection] 
     Dies ist f\"{u}r die komplette Verbindungsverwaltung inkl. der Erzeugung neuer Client Threads zust\"{a}ndig (Listing \appref{connection.c}, \appref{connection.h})
   \item[session] 
-    Dieses Modul implementiert eine Client-Session. Es beherbergt den kompletten Code zur Kommunikation mit einem Client. (Listing \appref{session.c}, \appref{session.h})
+    Dieses Modul implementiert eine Client-Session. Es beherbergt den kompletten Code zur Kommunikation mit einem Client. Es ist wiederum in 3 Teile geteilt: einen generellen Teil, der f\"{u}r beide Kommunikationsformen gilt, einen f\"{u}r die Annahme per SMTP und einen f\"{u}r die Annahme per Nutzerinterface. (Listing \appref{session.c}, \appref{session.h}, \appreff{smtp_session.c}{smtp\_session.c}, \appreff{smtp_session.h}{smtp\_session.h}, \appreff{user_session.c}{user\_session.c}, \appreff{user_session.h}{user\_session.h})
   \item[sender] 
     Das sender Modul ist f\"{u}r die Kommunikation mit dem Remoteserver zust\"{a}ndig, an welchen die E-Mails weitergeleitet werden. (Listing \appref{sender.c}, \appref{sender.h})
 \end{description}
@@ -52,6 +52,7 @@ Er wird komplett \"{u}ber die Kommandozeile konfiguriert und kennt dabei folgend
   \item[\texttt\bf{-p <bind\_port>}] Mit diesem Schalter geben Sie den Port an, an den der Server gebunden werden soll. Auch hier wird der Standardwert durch den Schalter \texttt{-h} ausgegeben.
   \item[\texttt\bf{-d <remote\_address>}] Hiermit kann die Adresse des Remoteservers, an den alle eingehenden E-Mails weitergeleitet werden, angegeben werden. Der Standartwert wird mit dem Schalter \texttt{-h} ausgegeben.
   \item[\texttt\bf{-r <remote\_port>}] Dieser Schalter dient zur Eingabe des Remoteports, also des Ports, an dem der Remoteserver lauscht. Standardwerte sind mit \texttt{-h} zu erfragen.
+  \item[\texttt\bf{-s}] Wird der Schalter \texttt{-s} angegeben, so l\"{a}uft der Server im SMTP Modus, d.h. er Nimmt Mails ncht mehr mit dem Nutzerinterface sondern mit dem SMTP Protokoll an.. 
   \item[\texttt\bf{-h}] Gibt einen Hilfetext mit allen Standartwerten aus. 
 \end{description}
 Adressen die \texttt{<bind\_address>} k\"{o}nnen dabei sowohl als IP Adresse, als auch als Hostname angegeben werden.
@@ -61,7 +62,9 @@ Wurde das Programm korrekt ausgef\"{u}hrt, so lauscht es auf dem angegebenem Por
 Der Remoteserver muss ein SMTP Server sein, welcher Mindestens die Kommandos \texttt{HELO}, \texttt{MAIL FROM}, \texttt{RCPT TO}, \texttt{DATA} und \texttt{QUIT} versteht. Der Datenblock wiederum muss mit \texttt{<CR><LF>.<CR><LF>} abschließbar sein.
 
 \navtwo{Client}
-Der Client muss die wichtigsten SMTP Kommandos beherrschen. Implementiert sind:
+Normalerweise braucht der Client keine besondere Kenntinisse zur Kommunikation mit dem Server haben, da dieser in Verst\"{a}ndlicher Form die ``Zutaten'' der Mail abfragt.
+
+Wenn der Server im SMTP Modus l\"{a}uft, muss der Client die wichtigsten SMTP Kommandos beherrschen. Implementiert sind:
 \begin{description}
   \item[\texttt\bf{HELO <client\_name>}] Anmeldung des Clients.
   \item[\texttt\bf{MAIL FROM:<mail\_addr>}] Angabe des Absenders.
@@ -74,7 +77,7 @@ Der Client muss die wichtigsten SMTP Kommandos beherrschen. Implementiert sind:
 
 Dabei muss eine Normale Sitzung immer nach dem SMTP-Protokoll (siehe \myref{rfc2821}{rfc2821}) ablaufen. Das heißt, das zuerst immer ein \texttt{HELO} kommen muss, dann beliebig viele Mailbl\"{o}cke, wobei ein Mailblock aus \texttt{HELO}$\rightarrow$\texttt{RCPT TO}$\rightarrow$\texttt{DATA}$\rightarrow$Datenblock mit abschließendem \texttt{<CR><LF>.<CR><LF>} besteht, und abschließend ein \texttt{QUIT}.
 
-Die Replycodes des Servers sind entsprechend dem SMTP Standard (siehe \myref{rfc2821}{rfc2821}) implementiert.
+Die Replycodes des Servers im SMTP Modus sind entsprechend dem SMTP Standard (siehe \myref{rfc2821}{rfc2821}) implementiert.
 
 \navone{Programmdokumentation}
 \navtwo{Modul smtprelay}\label{mod:smtprelay}
@@ -182,14 +185,12 @@ Sie schließt den Server Socket und beendet das Programm.
 \navthree{Beschreibung}
 Im Modul session sind die Funktionen definiert, die zur Kommunikation mit dem Client n\"{o}tig sind. 
 
-Dazu geh\"{o}rt die Ein- und Ausgabe auf dem Client Socket, die Abarbeitung der im SMTP Protokoll definierten Kommandosequenzen sowie das Testen der Eingaben des Clients.
+Dazu geh\"{o}rt die Ein- und Ausgabe auf dem Client Socket, die Abarbeitung der im SMTP Protokoll definierten Kommandosequenzen, wenn der Server im SMTP Modus betrieben wird, sowie das Testen der Eingaben des Clients.
 
-Die Quellen sind in den Listings \appref{session.c} und \appref{session.h} aufgef\"{u}hrt.
+Die Quellen sind in den Listings \appref{session.c}, \appref{session.h}, \appreff{smtp_session.c}{smtp\_session.c}, \appreff{smtp_session.h}{smtp\_session.h}, \appreff{user_session.c}{user\_session.c} und \appreff{user_session.h}{user\_session.h} aufgef\"{u}hrt.
 
-\navthree{Funktion write\_client\_msg}\label{fn:write_client_msg}
-Diese Funktion schreibt eine Ausgabe auf den Socket. Die Nachricht ist ein im Header des Modules \appref{session.h} definierter Formatstring (\texttt{MSG\_*}), in den der als Argument \"{u}bergebene Replycode, sowie ein optionales String Argument eingebaut wird.
-
-Zur\"{u}ckgegeben wird bei Erfolg \texttt{OK}, sonst \texttt{FAIL} (definiert in \appref{smtprelay.h}).
+Die Funktionen mit dem Pr\"{a}fix \texttt{smtp} fefinden sich dabei in den Dateien mit dem Pr\"{a}fix \texttt{smtp} und die mit dem Pr\"{a}fox \texttt{user} in den Dateien mit dem Pr\"{a}fix \texttt{user}.
+Die Funktionen ohne Pr\"{a}fix befinden sich in den Dateien ohne Pr\"{a}fix.
 
 \navthree{Funktion check\_addr}\label{fn:check_addr}
 Diese Funktion \"{u}berpr\"{u}ft eine vom Client angegebene Hostadresse. 
@@ -207,7 +208,72 @@ Dabei wird einfach gepr\"{u}ft, ob eine mindestens 3 Zeichen lange Zeichenkette,
 
 Eine genauere \"{U}berpr\"{u}fung wird auch hier dem Remote Server \"{u}berlassen, ist aber an dieser Stelle einfach implementierbar.
 
-\navthree{Funktion check\_input}\label{fn:check_input}
+\navthree{Funktion read\_data}\label{fn:read_data}
+Diese Funktion dient dazu, den Datenblock einer Mail zeilenweise zu lesen und daraus eine Liste vom Typ \texttt{data\_line\_t} zu generieren.
+
+Sie \"{u}berpr\"{u}ft die Eingabe auch auf das Terminierungszeichen \texttt{<CR><LF>.<CR><LF>} und beendet an dieser Stelle den Datenblock.
+
+\navthree{Funktion put\_forward\_proto}\label{fn:put_forward_proto}
+Diese Funktion gibt das Protokoll vom versenden der E Mail an den Remoteserver als Replycode (SMTP Modus) oder als Statusbericht (Nutzer Interface) zeilenweise aus.
+
+\navthree{Funktion start\_session}\label{fn:start_session}
+Dies ist eine Wrapperfunktion f\"{u}r die beiden Session-Methoden: SMTP und Nutzerinterface.
+
+Je nach dem, ob die Anwenung mit \texttt{-s} gestartet wurde ruft sie \myref{fn:smtp_start_session}{smtp\_start\_ession} oder \myref{fn:user_start_session}{user\_start\_session} auf und startet damit die entsprechende session.
+
+
+\navthree{Funktion user\_write\_msg}\label{fn:user_write_msg}
+Diese Funktion schreibt eine Ausgabe auf den Socket. Sie wird ausschließlich fon den Funktionn des Nutzerinterfaces genutzt.
+
+Die auszugebenden Nachrichten werden als Argument \"{u}bergeben und sind in dem Headerfile \appref{session.h} als Formatstring (\texttt{USER\_MSG\_*}) definiert.
+
+\navthree{Funktion user\_check\_confirm}\label{fn:user_check_confirm}
+Dies ist eine Check-Funkton, die wie \myref{fn:check_addr}{check\_addr} oder \myref{fn:check_mail}{check\_mail} an eine Input-Funktion \"{u}bergeben werden um den Input zu pr\"{u}fen.
+
+Diese Funktion speziell pr\"{u}ft dabei, ob das Schl\"{u}sselwort \texttt{send} zum Abschicken der Nachricht eingegeben wurde und gibt \texttt{ARG\_OK} zur\"{u}ck wenn dies der Fall ist, \texttt{ARG\_BAD} sonst.
+
+\navthree{Funktion user\_ask\_client}\label{fn:user_ask_client}
+Diese funktion ``stellt dem Client eine Frage''. Das bedeutet, sie fordert ihn auf eine bestimmte Information einzugeben.
+
+Diese Aufforderung besteht so lange bis der Client eine Eingabe gemacht hat, die die Pr\"{u}fung der \"{u}bergebenen Check-Funktion (z.b. \myref{fn:check_addr}{check\_addr}) bestanden hat.
+
+Zus\"{a}tzlich werden noch 3 Zeichenketten \"{u}bergeben, die 3 Nachrichten repr\"{a}sentieren:
+\begin{description}
+  \item[\texttt{question}] Stellt die initiale Frage an den Client dar.
+  \item[\texttt{ok\_msg}] Ist die Best\"{a}tigungsnachricht an den Client nach einer erfolgreichen Eingabe.
+  \item[\texttt{fail\_msg}] Ist die Nachricht, die ausgegeben wird wenn der Client einen nicht valide Eingabe gemacht hat. 
+\end{description}
+
+Außerdem kann der Funktion noch eine Addresse \"{u}bergeben werden (\texttt{destination}), an die die Eingabe geschrieben wird.
+
+In dem man \texttt{lock\_reset} 1 setzt wird zudem das \texttt{reset} Kommando ausgeschaltet.
+
+\navthree{Funktion user\_clean\_mail\_data}\label{fn:user_clean_mail_data}
+Diese Funktioon gibt den Speicher, der durch das Einlesen einer Mail belegt wurde, wieder frei.
+
+\navthree{Funktion user\_start\_session}\label{fn:user_start_session}
+Diese Funktion stellt das Nutzerinterface dar.
+
+Sie managt die komplette Kommunikation mit dem Client, von der Begr\"{u}ßung bis zur Beendingung der Verbindung.
+
+Als erstes wird eine Begr\"{u}ßung gesendet. Anschließend wird der Client nach seinem Hostnamen gefragt. Dann wird eine kurze Hilfe ausgegeben und die Empfangsschleife gestartet.
+
+In dieser Schleife fragt die Funktion zuerst nach der Absenderaddresse und dann nach der Empf\"{a}ngeraddresse. Anschließend werden Die Daten eingelesen und um Best\"{a}tigung gebeten, ob die Mail wirklich abgeschickt werden soll.
+
+Best\"{a}tigt der Nutzer, so wird die Mail an die Funktion \myref{fn:forward_mail}{forward\_mail} \"{u}bergeben, welche den Versand \"{u}bernimmt.
+
+Nach dem Versand wird wieder nach einer Ansenderaddresse gefragt.
+
+Diese Schleife kann der Nutzer bei jeder Frage (außer bei der Eingabe der Daten) durch \texttt{quit} beenden. Zudem hat er die M\"{o}glichkeit sie mit \texttt{reset} neu zu starten. 
+
+
+
+\navthree{Funktion smtp\_write\_client\_msg}\label{fn:smtp_write_client_msg}
+Diese Funktion schreibt eine Ausgabe auf den Socket. Die Nachricht ist ein im Header des Modules \appref{session.h} definierter Formatstring (\texttt{SMTP\_MSG\_*}), in den der als Argument \"{u}bergebene Replycode, sowie ein optionales String Argument eingebaut wird.
+
+Zur\"{u}ckgegeben wird bei Erfolg \texttt{OK}, sonst \texttt{FAIL} (definiert in \appref{smtprelay.h}).
+
+\navthree{Funktion smtp\_check\_input}\label{fn:smtp_check_input}
 Diese Funktion testet eine vom Client stammende gelesene Zeile.
 
 Dazu bekommt sie die gelesene Zeile, ein SMTP Kommando, das erwartet wird, ein Trennzeichen, mit dem das Kommando vom restlichem String getrennt ist, eine Funktion, mit der das Argument des Kommandos \"{u}berpr\"{u}ft wird und eine Adresse, an die das Argument geschrieben werden soll \"{u}bergeben.
@@ -220,12 +286,12 @@ Dann wird gepr\"{u}ft, ob das Trennzeichen ein nicht-Nullterminierungszeichen wa
 
 Wurden alle Tests passiert, so wird das Argument in einen neuen Speicherbereich geschrieben und \texttt{CHECK\_OK} zur\"{u}ckgegeben.
 
-\navthree{Funktion fetch\_input\_line}\label{fn:fetch_input_line}
+\navthree{Funktion smtp\_fetch\_input\_line}\label{fn:smtp_fetch_input_line}
 Diese Funktion holt \"{u}ber den Socket eine Zeile vom Client. Als Argumente bekommt sie den Filedescriptor der Socketverbindung, ein SMTP Kommando, das erwartet wird, ein Trennzeichen, mit dem das Kommando vom restlichem String getrennt ist, eine Funktion, mit der das Argument des Kommandos \"{u}berpr\"{u}ft wird und eine Adresse, an die das Argument geschrieben werden soll \"{u}bergeben.
 
-Zuerst wird die Zeile vom Socket gelesen und diese mittels \myref{fn:check_input}{check\_input} gepr\"{u}ft, ob es sich um die erwartete Zeile handelt. Ist dies der Fall, so wird \texttt{READ\_OK} zur\"{u}ckgegeben. Schl\"{a}gt die \"{U}berpr\"{u}fung des Argumentes in \myref{fn:check_input}{check\_input} fehl, so wird ein fehler an den Client geschickt und erneut auf eine Zeile gewartet.
+Zuerst wird die Zeile vom Socket gelesen und diese mittels \myref{fn:smtp_check_input}{check\_input} gepr\"{u}ft, ob es sich um die erwartete Zeile handelt. Ist dies der Fall, so wird \texttt{READ\_OK} zur\"{u}ckgegeben. Schl\"{a}gt die \"{U}berpr\"{u}fung des Argumentes in \myref{fn:smtp_check_input}{check\_input} fehl, so wird ein fehler an den Client geschickt und erneut auf eine Zeile gewartet.
 
-Handelt es sich bei der gelesenen Zeile nicht um die erwartete, so wird (ebenfalls mit \myref{fn:check_input}{check\_input}) gepr\"{u}ft, ob es sich um ein \texttt{RSET}, \texttt{QUIT}, \texttt{NOOP} oder eines der nicht implementierten Kommandos \texttt{VRFY}, \texttt{EXPN} bzw. \texttt{HELP} handelt. Zum Schluss wird noch getestet, ob es sich um ein anderes SMTP Kommando kandelt, welches an dieser Stelle nicht erwartet wurde.
+Handelt es sich bei der gelesenen Zeile nicht um die erwartete, so wird (ebenfalls mit \myref{fn:smtp_check_input}{check\_input}) gepr\"{u}ft, ob es sich um ein \texttt{RSET}, \texttt{QUIT}, \texttt{NOOP} oder eines der nicht implementierten Kommandos \texttt{VRFY}, \texttt{EXPN} bzw. \texttt{HELP} handelt. Zum Schluss wird noch getestet, ob es sich um ein anderes SMTP Kommando kandelt, welches an dieser Stelle nicht erwartet wurde.
 \begin{itemize}
   \item Bei \texttt{RSET} wird eine Meldung ausgegeben, das erfolgreich zur\"{u}ckgesetzt wurde und \texttt{READ\_RESET} zur\"{u}ckgegeben. 
   \item Bei \texttt{QUIT} wird eine Abschiedsnachricht an den Client gesandt und \texttt{READ\_QUIT} zur\"{u}ckgegeben. 
@@ -237,27 +303,19 @@ Handelt es sich bei der gelesenen Zeile nicht um die erwartete, so wird (ebenfal
 
 Bei Lesefehlern auf dem Socket wird \texttt{READ\_ERR} zur\"{u}ckgegeben und ein Fehler ausgegeben.
 
-\navthree{Funktion read\_data}\label{fn:read_data}
-Diese Funktion dient dazu, den Datenblock einer Mail zeilenweise zu lesen und daraus eine Liste vom Typ \texttt{data\_line\_t} zu generieren.
 
-Sie \"{u}berpr\"{u}ft die Eingabe auch auf das Terminierungszeichen \texttt{<CR><LF>.<CR><LF>} und beendet an dieser Stelle den Datenblock.
-
-
-\navthree{Funktion session\_sequence}\label{fn:session_sequence}
+\navthree{Funktion smtp\_session\_sequence}\label{fn:smtp_session_sequence}
 Diese Funktion dient dazu, eine Mail Sequenz (\texttt{MAIL FROM} $\rightarrow$ \texttt{RCPT TO} $\rightarrow$ \texttt{DATA} $\rightarrow$ Daten $\rightarrow$ \texttt{<CR><LF>.<CR><LF>}) abzuarbeiten.
 
-Dazu wird mit \myref{fn:fetch_input_line}{fetch\_input\_line} auf das entsprechende Kommando bzw. mit \myref{fn:read_data}{read\_data} auf Daten gewartet und jeweils eine Statusnachricht zur\"{u}ckgegeben.
+Dazu wird mit \myref{fn:smtp_fetch_input_line}{smtp_fetch\_input\_line} auf das entsprechende Kommando bzw. mit \myref{fn:read_data}{read\_data} auf Daten gewartet und jeweils eine Statusnachricht zur\"{u}ckgegeben.
 
 Bei Fehlern wird mit \texttt{SESSION\_ABORT} abgebrochen. Ein empfangenes \texttt{QUIT} l\"{a}sst die Funktion ein \texttt{SESSION\_QUIT} und \texttt{RSET} ein \texttt{SESSION\_RESET} zur\"{u}ckgeben. Bei erfolgreich abgearbeiteter Mail Sequenz wird \texttt{SESSION\_SEND} zur\"{u}ckgegeben.
 
-\navthree{Funktion put\_forward\_proto}\label{fn:put_forward_proto}
-Diese Funktion gibt das Protokoll vom versenden der E Mail an den Remoteserver als Replycode zeilenweise aus.
 
-
-\navthree{Funktion start\_session}\label{fn:start_session}
+\navthree{Funktion smtp\_start\_session}\label{fn:smtp_start_session}
 Dies ist die Funktion, die eine Mailsession f\"{u}r einen Client startet. Sie wird dabei vin \myref{fn:process_client}{process\_client} aus dem Modul \myref{mod:connection}{connection} aufgerufen.
 
-Sie begr\"{u}ßt den Client, wartet auf sein \texttt{HELO}, startet mit \myref{fn:session_sequence}{session\_sequence} die Mail Sequenzen, \"{u}bernimmt die Behandlung der R\"{u}ckgabewerte (r\"{u}cksetzten, beenden oder abbrechen der Verbindung) und schickt mittels \myref{fn:forward_mail}{forward\_mail} die Mail schließlich an den Remoteserver.
+Sie begr\"{u}ßt den Client, wartet auf sein \texttt{HELO}, startet mit \myref{fn:smtp_session_sequence}{smtp_session\_sequence} die Mail Sequenzen, \"{u}bernimmt die Behandlung der R\"{u}ckgabewerte (r\"{u}cksetzten, beenden oder abbrechen der Verbindung) und schickt mittels \myref{fn:forward_mail}{forward\_mail} die Mail schließlich an den Remoteserver.
 
 
 
@@ -305,7 +363,7 @@ Dazu benutzt sie vor allem die Funktionen \myref{fn:try_command}{try\_command} u
 Nach erfolgreichem Versand wird \texttt{OK} zur\"{u}ckgegeben, ansonsten \texttt{FAIL} (definiert in \appref{smtprelay.h})
 
 \navthree{Funktion forward\_mail}\label{fn:forward_mail}
-Diese Funktion startet das verschicken der E Mail an den Remoteserver. Aufgerufen wird sie von \myref{fn:start_session}{start\_session} aus dem Modul \myref{mod:session}{session}.
+Diese Funktion startet das verschicken der E Mail an den Remoteserver. Aufgerufen wird sie von \myref{fn:smtp_start_session}{smtp\_start\_session} und \myref{fn:user_start_session}{user\_start\_session} aus dem Modul \myref{mod:session}{session}.
 
 Sie l\"{a}sst zuerst von \myref{fn:create_remote_conn}{create\_remote\_conn} aus dem Modul \myref{mod:connection}{connection} eine Verbindung zum Remoteserver aufbauen, startet dann durch einen Aufruf von \myref{fn:send_mail}{send\_mail} das senden der Mail und l\"{a}sst anschließend mit \myref{fn:put_forward_proto}{put\_forward\_proto} das Protokoll ausgeben. 
 
