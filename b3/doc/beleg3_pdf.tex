@@ -1,0 +1,103 @@
+\documentclass[pdftex,final,a4paper,10pt,notitlepage,halfparskip]{scrreprt}
+
+\usepackage[german,ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[babel,german=quotes]{csquotes}
+\usepackage{fancybox}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{floatflt}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{listings}
+
+\setkomafont{caption}{\footnotesize\linespread{1}\selectfont}
+\setlength{\abovecaptionskip}{-0.1cm}
+\addto\captionsngerman{\renewcommand\figurename{Abb.}}
+
+\newcommand{\myref}[2]{\ref{#1}}
+\newcommand{\appref}[1]{\ref{#1}}
+\newcommand{\navone}[1]{\chapter{#1}}
+\newcommand{\navtwo}[1]{\section{#1}}
+\newcommand{\navthree}[1]{\subsection{#1}}
+
+\title{Systemprogrammierung\\
+- Beleg 3 -}
+\author{Jan Losinski}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\input{beleg3.tex}
+
+
+\begin{appendix}
+  \chapter{Anhang}
+  \section{Quellen}
+
+  \lstset{language=[ANSI]C, 
+      keywordstyle=\color{blue!80!black!100}, 
+      identifierstyle=, 
+      commentstyle=\color{green!50!black!100}, 
+      stringstyle=\ttfamily, 
+      breaklines=true, 
+      columns=fixed,
+      numbers=left, 
+      framexleftmargin=20pt,
+      numbersep=9pt,
+      numberstyle=\tiny, 
+      frame=single, 
+      caption={C-Code} 
+      % basicstyle=\small\ttfamily\bf, % print whole listing small 
+      basicstyle=\scriptsize\ttfamily\bf, % print whole listing small 
+      linewidth=\linewidth,       % Zeilenbreite 
+      breaklines=true,
+      showstringspaces=false,
+      breakatwhitespace=true, %Umbruch an Leerzeichen 
+      captionpos=t 
+  }
+
+
+  \subsection{smtprelay}
+  \lstinputlisting[caption=smtprelay.c,label=smtprelay.c]{../smtprelay.c}
+  \pagebreak
+  \lstinputlisting[caption=smtprelay.h,label=smtprelay.h]{smtprelay.h}
+  \pagebreak
+  \subsection{connection}
+  \lstinputlisting[caption=connection.c,label=connection.c]{../connection.c}
+  \pagebreak
+  \lstinputlisting[caption=connection.h,label=connection.h]{../connection.h}
+  \pagebreak
+  \subsection{session}
+  \lstinputlisting[caption=session.c,label=session.c]{../session.c}
+  \pagebreak
+  \lstinputlisting[caption=session.h,label=session.h]{../session.h}
+  \pagebreak
+  \subsection{sender}
+  \lstinputlisting[caption=sender.c,label=sender.c]{../sender.c}
+  \pagebreak
+  \lstinputlisting[caption=sender.h,label=sender.h]{../sender.h}
+  \pagebreak
+  \subsection{Makefile}
+  \lstinputlisting[caption=Makefile,label=Makefile]{../Makefile}
+  \pagebreak
+
+  \section{SMTP Standard}
+  \lstset{numbers=none,
+      basicstyle=\scriptsize\ttfamily\bf, % print whole listing small 
+      formfeed=\pagebreak,
+      showstringspaces=false,
+      language=[plain]TeX}
+  \lstinputlisting[caption=SMTP Standard: RFC 2821,label=rfc2821]{rfc2821.txt}
+
+
+\end{appendix}
+
+\end{document}
