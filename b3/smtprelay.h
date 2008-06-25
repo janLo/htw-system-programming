@@ -40,7 +40,7 @@
 #define ERR_OPT_REMOTE_ADD 	"Remote Address not valid"
 #define ERR_OPT_REMOTE_PORT 	"Remote Port not valid"
 
-#define DEFAULT_BIND_ADDR "127.0.0.1"
+#define DEFAULT_BIND_ADDR "0.0.0.0"
 #define DEFAULT_BIND_PORT "2345"
 
 #define DEFAULT_REMOTE_ADDR "141.30.228.39"

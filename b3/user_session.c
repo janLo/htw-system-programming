@@ -50,6 +50,14 @@ int user_check_confirm(char *buff){
   return ARG_BAD;
 }
 
+// Check if input is min2 chars
+int user_check_noempty(char *buff){
+  if (strlen(buff) > 1){
+    return ARG_OK;
+  }
+  return ARG_BAD;
+}
+
 // Ask the User a Question
 int user_ask_client(int fd, const char *question, const char *ok_msg, const char *fail_msg, char ** destination, int (*check_fkt)(char *), int lock_reset){
   int  len;
@@ -149,12 +157,38 @@ void user_clean_mail_data(mail_data_t* data){
   }
 }
 
+// Build a HTML Header with Subject, To and From and prepend it to the Body
+data_line_t* user_build_header(char *subject, char *from, char *to, data_line_t *body){
+  data_line_t *ret, *tmp;
+  
+  char *header_subject = malloc(sizeof(char) * 1024);
+  char *header_to = malloc(sizeof(char) * 1024);
+  char *header_from = malloc(sizeof(char) * 1024);
+
+  snprintf(header_subject, 1023, "Subject: %s", subject);
+  snprintf(header_to, 1023, "To: %s", to);
+  snprintf(header_from, 1023, "From: %s", from);
+
+  tmp = malloc(sizeof(data_line_t));
+  tmp->data = header_from;
+  ret = tmp;
+  tmp->next = malloc(sizeof(data_line_t));
+  tmp = tmp->next;
+  tmp->data = header_to;
+  tmp->next = malloc(sizeof(data_line_t));
+  tmp = tmp->next;
+  tmp->data = header_subject;
+  tmp->next = body;
+  return ret;
+}
+
 int user_start_session(int fd){
   int session = SESSION_RUN, i=0;
   mail_data_t *data = NULL;
   data_line_t *walker;
   int result;
   char buff[33];
+  char *subject = NULL;
 
   data = malloc(sizeof(mail_data_t));
   memset(data, 0, sizeof(mail_data_t));
@@ -218,6 +252,22 @@ int user_start_session(int fd){
       }
     }
 
+    // Subject
+    result = user_ask_client(fd, USER_MSG_SUBJECT_ASK, USER_MSG_SUBJECT_OK, USER_MSG_SUBJECT_FAIL, &(subject), user_check_noempty, 0);    
+    if (result == READ_OK){
+      DEBUG_CLNT_S("Subject OK", subject);
+    } else {
+      if (result == READ_RESET){
+	session = SESSION_RESET;
+	user_clean_mail_data(data);
+	continue;
+      } else {
+	session = SESSION_ABORT;
+	user_clean_mail_data(data);
+	break;
+      }
+    }
+
     // Data
     if (user_write_client_msg(fd, 0, USER_MSG_DATA_1, NULL) == FAIL
 	|| user_write_client_msg(fd, 0, USER_MSG_DATA_2, NULL) == FAIL){
@@ -260,6 +310,9 @@ int user_start_session(int fd){
       break;
     }
 
+    // Build Header
+    data->data = user_build_header(subject, data->sender_mail, data->rcpt_mail, data->data);
+    free(subject);
 
     //Really Send?
     result = user_ask_client(fd, USER_MSG_CONFIRM_ASK, USER_MSG_CONFIRM_OK, USER_MSG_CONFIRM_FAIL, NULL, user_check_confirm, 0);

@@ -16,3 +16,7 @@ werden.
 Mit "make clean" werden alle ererzeugten Dateien wieder
 aufgeräumt.
 
+Zusätzlich existieren noch folgende Targets:
+- "make auf1" Bauen der Aufgabe 1                                                                                                                                                                               
+- "make auf2a" Bauen der Aufgabe 2a                                                                                                                                                                             
+- "make auf2b" Bauen der Aufgabe 2b 

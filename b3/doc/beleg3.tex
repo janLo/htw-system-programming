@@ -232,6 +232,9 @@ Dies ist eine Check-Funkton, die wie \myref{fn:check_addr}{check\_addr} oder \my
 
 Diese Funktion speziell pr\"{u}ft dabei, ob das Schl\"{u}sselwort \texttt{send} zum Abschicken der Nachricht eingegeben wurde und gibt \texttt{ARG\_OK} zur\"{u}ck wenn dies der Fall ist, \texttt{ARG\_BAD} sonst.
 
+\navthree{user\_check\_noempty}\label{user_check_noempty}
+Diese Funktion testet, ob die eingegebene Zeichenkette mindestens 2 Zeichen lang ist.
+
 \navthree{Funktion user\_ask\_client}\label{fn:user_ask_client}
 Diese funktion ``stellt dem Client eine Frage''. Das bedeutet, sie fordert ihn auf eine bestimmte Information einzugeben.
 
@@ -250,6 +253,18 @@ In dem man \texttt{lock\_reset} 1 setzt wird zudem das \texttt{reset} Kommando a
 
 \navthree{Funktion user\_clean\_mail\_data}\label{fn:user_clean_mail_data}
 Diese Funktioon gibt den Speicher, der durch das Einlesen einer Mail belegt wurde, wieder frei.
+
+\navthree{user\_build\_header}\label{user_build_header}
+Diese Funktion baut den Header der Mail zusammen.
+
+Dieser besteht aus 
+\begin{description}
+  \item[\texttt{Subject:}] Dem Betreff der Mail.
+  \item[\texttt{To:}] Dem Empf\"{a}nger der Mail.
+  \item[\texttt{From:}] Dem Absender der Mail.
+\end{description}
+
+Anschließend wird der Body der Mail an den Header angehangen und ein Pointer auf die erste Zeile zur\"{u}ckgegeben.
 
 \navthree{Funktion user\_start\_session}\label{fn:user_start_session}
 Diese Funktion stellt das Nutzerinterface dar.
