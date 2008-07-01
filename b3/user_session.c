@@ -39,6 +39,8 @@ int user_write_client_msg(int fd, int status, const char *msg, char *add){
     ret = OK;
   }
 
+  free(buff);
+
   return ret;
 }
 

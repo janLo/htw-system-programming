@@ -15,12 +15,12 @@ enum command{
 };
 
 // Generates a new Protocol Entry
-data_line_t *new_proto_entry(char *data){
-  data_line_t *new = malloc(sizeof(data_line_t));
+data_line_t *new_proto_entry(const char *data){
+  data_line_t *new = calloc(1, sizeof(data_line_t));
   char *pos;
 
   new->next = NULL;
-  new->data = malloc(sizeof(char) * (strlen(data)+10) );
+  new->data = calloc(1, sizeof(char) * (strlen(data)+10) );
   strcpy(new->data, data);
 
   if((pos = strchr(new->data, '\n')) != NULL){
@@ -60,7 +60,7 @@ int read_remote(int fd, char *buff, size_t size, data_line_t * protocol_end){
 }
 
 // Write something to the socket
-int write_remote(int fd, char* buff, size_t size, data_line_t * protocol_end){
+int write_remote(int fd, const char* buff, size_t size, data_line_t * protocol_end){
   int ret = 0;
 
   if((ret = write(fd, buff, size)) > 0){
